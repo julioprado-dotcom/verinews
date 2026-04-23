@@ -5,13 +5,23 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  images: {
+    unoptimized: true,
+  },
   serverExternalPackages: [
     '@prisma/client',
     '@prisma/adapter-libsql',
     '@libsql/client',
     'z-ai-web-dev-sdk',
-    'sharp',
   ],
+  experimental: {
+    serverComponentsExternalPackages: [
+      '@prisma/client',
+      '@prisma/adapter-libsql',
+      '@libsql/client',
+      'z-ai-web-dev-sdk',
+    ],
+  },
 };
 
 export default nextConfig;
