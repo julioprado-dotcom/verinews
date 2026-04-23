@@ -76,8 +76,10 @@ export type AnalysisStage =
   | "idle"
   | "extracting"
   | "searching"
+  | "classifying"
   | "analyzing"
   | "generating"
+  | "saving"
   | "complete"
   | "error";
 
@@ -85,10 +87,33 @@ export const STAGE_LABELS: Record<AnalysisStage, string> = {
   idle: "Listo para verificar",
   extracting: "Extrayendo contenido...",
   searching: "Buscando fuentes diversas...",
+  classifying: "Clasificando fuentes por perspectiva...",
   analyzing: "Analizando con enfoque crítico-pluralista...",
-  generating: "Generando reporte...",
+  generating: "Generando reporte final...",
+  saving: "Guardando resultados...",
   complete: "Análisis completado",
   error: "Error en el análisis",
+};
+
+export interface LogEntry {
+  id: string;
+  timestamp: number;
+  stage: AnalysisStage;
+  message: string;
+  detail?: string;
+  status: "running" | "done" | "error";
+}
+
+export const STAGE_ICONS: Record<AnalysisStage, string> = {
+  idle: "⏳",
+  extracting: "📄",
+  searching: "🔍",
+  classifying: "🏷️",
+  analyzing: "🧠",
+  generating: "📊",
+  saving: "💾",
+  complete: "✅",
+  error: "❌",
 };
 
 export const SOURCE_CATEGORY_LABELS: Record<SourceCategory, string> = {

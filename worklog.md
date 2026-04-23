@@ -27,3 +27,25 @@ Stage Summary:
   - Verification history with SQLite storage
   - Responsive design with emerald green theme
   - Progress indicator during analysis
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Replace ProgressIndicator with real-time LiveLog using SSE
+
+Work Log:
+- Added LogEntry type and STAGE_ICONS constant to types.ts
+- Extended AnalysisStage with 'classifying' and 'saving' stages
+- Converted /api/verify from single JSON response to SSE (Server-Sent Events) streaming
+- Each backend step now emits real-time log events with: stage, message, detail, status
+- Steps with detailed logs: extracting → analyzing claims → searching sources (per claim + counter-narratives) → classifying sources → generating analysis → saving to DB
+- Created LiveLog component with terminal-style UI: colored status indicators, timestamps, detail lines, auto-scroll
+- LiveLog features: elapsed timer, progress bar, animated cursor, stage-specific colors
+- Updated page.tsx to consume SSE stream instead of simulated setTimeout stages
+- Build compiles successfully, dev server returns 200
+
+Stage Summary:
+- VeriNews now shows a real-time log of what the backend is doing at each stage
+- SSE streaming replaces the fake setTimeout-based progress simulation
+- Each log entry shows: timestamp, status icon (✓/✗/●), stage icon, message, and optional detail
+- Terminal-style UI with header (dots, title, timer), scrollable log area, and progress bar footer

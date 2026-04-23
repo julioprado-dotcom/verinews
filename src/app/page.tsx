@@ -7,7 +7,7 @@ import { DimensionCard } from '@/components/verification/DimensionCard';
 import { SourceCard } from '@/components/verification/SourceCard';
 import { SourceSummary } from '@/components/verification/SourceSummary';
 import { SilencedVoices } from '@/components/verification/SilencedVoices';
-import { ProgressIndicator } from '@/components/verification/ProgressIndicator';
+import { LiveLog } from '@/components/verification/LiveLog';
 import { HistoryList } from '@/components/verification/HistoryList';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ import type {
   InputType,
   VerificationResult,
   AnalysisStage,
+  LogEntry,
 } from '@/lib/types';
 
 export default function Home() {
@@ -36,6 +37,7 @@ export default function Home() {
   const [history, setHistory] = useState<Array<any>>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [activeSourceFilter, setActiveSourceFilter] = useState<string>('all');
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isDark, setIsDark] = useState(true);
 
   // Initialize dark mode
@@ -81,12 +83,8 @@ export default function Home() {
     async (inputType: InputType, content: string) => {
       setIsLoading(true);
       setResult(null);
+      setLogs([]);
       setStage('extracting');
-
-      // Simulate stage progression for UX
-      const stageTimer1 = setTimeout(() => setStage('searching'), 2000);
-      const stageTimer2 = setTimeout(() => setStage('analyzing'), 6000);
-      const stageTimer3 = setTimeout(() => setStage('generating'), 12000);
 
       try {
         const res = await fetch('/api/verify', {
@@ -95,24 +93,70 @@ export default function Home() {
           body: JSON.stringify({ inputType, content }),
         });
 
-        clearTimeout(stageTimer1);
-        clearTimeout(stageTimer2);
-        clearTimeout(stageTimer3);
-
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || 'Error en la verificación');
         }
 
-        const data: VerificationResult = await res.json();
-        setResult(data);
-        setStage('complete');
+        // Read SSE stream
+        const reader = res.body?.getReader();
+        if (!reader) throw new Error('No se pudo leer la respuesta');
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+            const jsonStr = trimmed.slice(6); // Remove 'data: ' prefix
+            try {
+              const event = JSON.parse(jsonStr);
+
+              if (event.type === 'log') {
+                const entry: LogEntry = event.entry;
+                setLogs((prev) => [...prev, entry]);
+                setStage(entry.stage);
+              } else if (event.type === 'result') {
+                const data: VerificationResult = event.data;
+                setResult(data);
+                setStage('complete');
+              } else if (event.type === 'error') {
+                throw new Error(event.message || 'Error en la verificación');
+              }
+            } catch (parseError) {
+              // If it's a thrown error from the error event, re-throw
+              if (parseError instanceof Error && parseError.message !== 'Unexpected token') {
+                throw parseError;
+              }
+              // Otherwise skip malformed JSON
+            }
+          }
+        }
 
         // Refresh history
         fetchHistory();
       } catch (error) {
         console.error('Verification failed:', error);
         setStage('error');
+        setLogs((prev) => [
+          ...prev,
+          {
+            id: `error-${Date.now()}`,
+            timestamp: Date.now(),
+            stage: 'error',
+            message: error instanceof Error ? error.message : 'Error desconocido durante la verificación',
+            status: 'error',
+          },
+        ]);
       } finally {
         setIsLoading(false);
       }
@@ -123,6 +167,7 @@ export default function Home() {
   const handleReset = () => {
     setResult(null);
     setStage('idle');
+    setLogs([]);
   };
 
   const filteredSources =
@@ -246,8 +291,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* Progress Indicator */}
-          {isLoading && <ProgressIndicator stage={stage} />}
+          {/* Live Log */}
+          {isLoading && <LiveLog logs={logs} currentStage={stage} />}
 
           {/* Error state */}
           {stage === 'error' && !isLoading && (
