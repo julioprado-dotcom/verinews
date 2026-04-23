@@ -115,8 +115,15 @@ export async function POST(request: NextRequest) {
     // Create a TransformStream for SSE
     const stream = new ReadableStream({
       async start(controller) {
+        let closed = false;
+
         const send = (text: string) => {
-          controller.enqueue(encoder.encode(text));
+          if (closed) return;
+          try {
+            controller.enqueue(encoder.encode(text));
+          } catch {
+            closed = true;
+          }
         };
 
         try {
@@ -589,7 +596,10 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
           const resultData = JSON.stringify({ type: 'result', data: analysisResult });
           send(`data: ${resultData}\n\n`);
 
-          controller.close();
+          if (!closed) {
+            closed = true;
+            controller.close();
+          }
         } catch (error) {
           console.error('Verification error:', error);
           const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
@@ -599,7 +609,10 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
           ));
           const errorData = JSON.stringify({ type: 'error', message: errorMsg });
           send(`data: ${errorData}\n\n`);
-          controller.close();
+          if (!closed) {
+            closed = true;
+            controller.close();
+          }
         }
       },
     });

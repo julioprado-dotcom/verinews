@@ -23,7 +23,17 @@ export async function webSearch(query: string, num: number = 10) {
   return zai.functions.invoke("web_search", { query, num });
 }
 
-export async function webReader(url: string) {
-  const zai = await getZAI();
-  return zai.functions.invoke("web_reader", { url });
+/**
+ * Attempt to read a web page's content via the web-reader function.
+ * Returns null if the function is unavailable or fails.
+ */
+export async function webReader(url: string): Promise<{ title?: string; html?: string; content?: string; text?: string } | null> {
+  try {
+    const zai = await getZAI();
+    const result = await zai.functions.invoke("web_reader", { url });
+    return result as any;
+  } catch {
+    // web_reader may not be available in all SDK versions
+    return null;
+  }
 }

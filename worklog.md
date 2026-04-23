@@ -95,3 +95,32 @@ Stage Summary:
 - URL input now tries direct page reading first (webReader), then falls back to search + LLM
 - Error states show the LiveLog so users can see exactly where it failed
 - HispanTV URL test passed: Score 45/100 (false), 15 sources found, 3 silenced voices detected
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Fix hydration mismatch + SSE controller crash + webReader error
+
+Work Log:
+- Fixed React hydration mismatch in LiveLog component:
+  - Added `mounted` state set in useEffect to prevent server/client content differences
+  - Replaced `toLocaleTimeString('es-BO')` with manual `padStart` formatting (deterministic)
+  - Time-dependent content (timestamps, elapsed timer, cursor) only renders after client mount
+  - Moved PROGRESS_STAGES to module-level constant
+- Fixed `Controller is already closed` error in SSE stream:
+  - Added `closed` flag to prevent double controller.close() calls
+  - Wrapped controller.enqueue in try/catch with closed flag
+  - Both success and error paths check closed flag before closing
+- Fixed `Unknown function: web_reader` error:
+  - webReader function now catches errors and returns null instead of throwing
+  - API route gracefully falls back to webSearch when webReader returns null
+- Fixed dark mode hydration mismatch:
+  - Added blocking script in layout.tsx that reads localStorage before first paint
+  - Set default className="dark" on <html> element
+  - suppressHydrationWarning on <html> to allow server/client class difference
+
+Stage Summary:
+- Hydration mismatch completely resolved: all time/locale-dependent content only renders client-side
+- SSE stream no longer crashes on controller errors or rate limiting
+- webReader gracefully degrades when function is unavailable
+- Dark mode applied before first paint via blocking script
