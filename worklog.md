@@ -49,3 +49,25 @@ Stage Summary:
 - SSE streaming replaces the fake setTimeout-based progress simulation
 - Each log entry shows: timestamp, status icon (✓/✗/●), stage icon, message, and optional detail
 - Terminal-style UI with header (dots, title, timer), scrollable log area, and progress bar footer
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Add share button for verification results summary
+
+Work Log:
+- Created ShareResult component with 3 sharing options
+- Web Share API (native mobile share) as primary method
+- Clipboard copy as fallback (with copied confirmation animation)
+- Twitter/X share with compact format (280-char friendly)
+- WhatsApp share with full summary
+- Generated share text includes: veracity verdict, score, summary, 6 dimension scores, source diversity breakdown, silenced voices, and app URL link
+- App URL is dynamically resolved via window.location.origin
+- Integrated ShareResult into results section next to "Nueva verificación" button
+- Build compiles successfully, server returns 200
+
+Stage Summary:
+- Users can share a complete verification result summary with one tap
+- Share text includes link back to the VeriNews app URL
+- Native Web Share API on mobile, dropdown options on desktop
+- Three channels: Clipboard copy, Twitter/X, WhatsApp

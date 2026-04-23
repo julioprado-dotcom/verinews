@@ -8,6 +8,7 @@ import { SourceCard } from '@/components/verification/SourceCard';
 import { SourceSummary } from '@/components/verification/SourceSummary';
 import { SilencedVoices } from '@/components/verification/SilencedVoices';
 import { LiveLog } from '@/components/verification/LiveLog';
+import { ShareResult } from '@/components/verification/ShareResult';
 import { HistoryList } from '@/components/verification/HistoryList';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -314,16 +315,19 @@ export default function Home() {
           {/* Results */}
           {result && stage === 'complete' && (
             <div className="space-y-6">
-              {/* Back button */}
-              <Button
-                onClick={handleReset}
-                variant="ghost"
-                size="sm"
-                className="gap-2 text-muted-foreground"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Nueva verificación
-              </Button>
+              {/* Back button + Share */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <Button
+                  onClick={handleReset}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-muted-foreground"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Nueva verificación
+                </Button>
+                <ShareResult result={result} />
+              </div>
 
               {/* Score + Summary */}
               <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
