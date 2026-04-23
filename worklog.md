@@ -124,3 +124,44 @@ Stage Summary:
 - SSE stream no longer crashes on controller errors or rate limiting
 - webReader gracefully degrades when function is unavailable
 - Dark mode applied before first paint via blocking script
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Fix SDK rate limiting + remove webReader + add retry logic
+
+Work Log:
+- Removed webReader from zai.ts — `web_reader` function doesn't exist in the SDK (was causing 502 errors)
+- Added `delay()` utility function for rate limit buffering between SDK calls
+- Added `withRetry()` function with exponential backoff (3 retries, base 2s delay) for 429 rate limit errors
+- Wrapped chatCompletion() and webSearch() with retry logic
+- Updated route.ts: removed webReader calls, replaced with webSearch-only strategy for URL extraction
+- Added delays (1.5-2s) between all SDK calls in verification pipeline to prevent rate limiting
+- Build compiles successfully, server returns 200
+
+Stage Summary:
+- SDK calls now have retry logic with exponential backoff for 429 errors
+- Delays between API calls prevent rate limiting
+- webReader removed (was causing 502 — function doesn't exist in SDK)
+- URL extraction uses webSearch + LLM reconstruction only
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Migrate database from SQLite to Turso (libSQL) for EdgeOne Pages deployment
+
+Work Log:
+- Installed @libsql/client and @prisma/adapter-libsql packages
+- Updated prisma/schema.prisma: added `previewFeatures = ["driverAdapters"]` for libSQL support
+- Rewrote src/lib/db.ts: dual-mode connection — local SQLite (dev) or Turso (production via env vars)
+- Added TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables to .env
+- Created edgeone.json build configuration for EdgeOne Pages deployment
+- Fixed import: PrismaLibSQL → PrismaLibSql (correct export name from adapter)
+- Build compiles successfully, server returns 200
+
+Stage Summary:
+- Database layer now supports both local SQLite (development) and Turso (production)
+- When TURSO_DATABASE_URL is set, app connects to Turso cloud database
+- When not set, falls back to local SQLite file (backward compatible)
+- App ready for deployment on EdgeOne Pages with external Turso database
+- Next steps: create Turso account, create database, set env vars in EdgeOne Pages

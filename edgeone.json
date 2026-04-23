@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npx prisma generate && npx next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "bun install",
+  "env": {
+    "TURSO_DATABASE_URL": "",
+    "TURSO_AUTH_TOKEN": ""
+  }
+}
