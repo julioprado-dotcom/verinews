@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
+model Verification {
+  id              String   @id @default(cuid())
+  inputType       String   // "text" | "url" | "claim"
+  inputContent    String   // The original text/URL/claim
+  extractedText   String?  // Text extracted from URL (if applicable)
+  overallScore    Int      // 0-100
+  veracityLevel   String   // "verified" | "dubious" | "false"
+  
+  // 6 dimensions scores (0-100)
+  sourceCredibility   Int
+  internalCoherence   Int
+  externalCorroboration Int
+  sensationalism      Int  // Higher = more sensationalist
+  factualAccuracy     Int
+  biasManipulation    Int  // Higher = more bias detected
+  
+  // Detailed analysis (JSON strings)
+  dimensionDetails    String  // JSON: detailed analysis per dimension
+  sourcesFound        String  // JSON: array of sources with metadata
+  silencedVoices      String  // JSON: omitted perspectives
+  summary             String  // Overall summary
+  
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
