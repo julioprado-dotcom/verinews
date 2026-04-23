@@ -1,5 +1,5 @@
 {
-  "buildCommand": "next build",
+  "buildCommand": "next build && rm -rf .next/server/node_modules/@img && rm -rf node_modules/@img && rm -rf node_modules/next/dist/compiled/sharp",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "bun install"

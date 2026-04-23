@@ -1,22 +1,20 @@
 #!/bin/bash
-# Custom build script for EdgeOne Pages
-# Removes heavy unused packages before building to stay under 128MB limit
+set -e
 
-echo "🧹 Removing unused heavy packages to reduce bundle size..."
+echo "=== Building VeriNews for EdgeOne Pages ==="
 
-# Remove sharp binaries (33MB) — not needed with unoptimized images
-rm -rf node_modules/@img/sharp-libvips-linux-x64
-rm -rf node_modules/@img/sharp-libvips-linuxmusl-x64
-rm -rf node_modules/@img/sharp-linux-x64
-rm -rf node_modules/@img/sharp-linuxmusl-x64
-
-# Remove prisma engines binary (58MB) — not needed at build time, Prisma client is already generated
-rm -rf node_modules/@prisma/engines
-
-echo "✅ Cleanup done. Building..."
-
-# Generate Prisma client and build
-npx prisma generate
+# Build Next.js in standalone mode
 npx next build
 
-echo "✅ Build complete!"
+# Copy static files to standalone output
+echo "Copying static files..."
+cp -r .next/static .next/standalone/.next/
+
+# Copy public files
+echo "Copying public files..."
+cp -r public .next/standalone/
+
+echo "=== Build complete ==="
+echo "Standalone output: .next/standalone/"
+du -sh .next/standalone/
+du -sh .next/standalone/node_modules/
