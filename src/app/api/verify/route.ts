@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { chatCompletion, webSearch } from '@/lib/zai';
+import { chatCompletion, webSearch, webReader } from '@/lib/zai';
 import { db } from '@/lib/db';
 import type {
   VerificationRequest,
@@ -133,46 +133,92 @@ export async function POST(request: NextRequest) {
           let extractedText = content;
 
           if (inputType === 'url') {
+            // Strategy 1: Try webReader to get the actual page content
+            let readerSuccess = false;
             try {
-              const urlSearchResults = await webSearch(content.trim(), 5);
-              if (Array.isArray(urlSearchResults) && urlSearchResults.length > 0) {
-                const combinedSnippets = urlSearchResults
-                  .map((r: { name: string; snippet: string }) => `${r.name}: ${r.snippet}`)
-                  .join('\n\n');
-                extractedText = combinedSnippets || content;
+              send(sendLog(encoder, 'extracting',
+                'Leyendo contenido directo de la URL...',
+                content.slice(0, 80)
+              ));
 
-                send(sendLog(encoder, 'extracting',
-                  'Resultados de búsqueda obtenidos',
-                  `${urlSearchResults.length} resultados encontrados`
-                ));
+              const readerResult = await webReader(content.trim());
+              if (readerResult && typeof readerResult === 'object') {
+                // webReader returns { title, html, publish_time } or similar
+                const pageContent = readerResult.html || readerResult.content || readerResult.text || '';
+                const pageTitle = readerResult.title || '';
+                if (pageContent && pageContent.length > 100) {
+                  // Strip HTML tags for clean text
+                  const cleanText = pageContent
+                    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                    .replace(/<[^>]+>/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                  if (cleanText.length > 100) {
+                    extractedText = pageTitle ? `${pageTitle}\n\n${cleanText}` : cleanText;
+                    readerSuccess = true;
+                    send(sendLog(encoder, 'extracting',
+                      'Contenido de la página leído exitosamente',
+                      `${extractedText.split(' ').length} palabras extraídas directamente`,
+                      'done'
+                    ));
+                  }
+                }
               }
             } catch {
-              extractedText = content;
               send(sendLog(encoder, 'extracting',
-                'No se pudieron obtener resultados de búsqueda, usando URL directamente',
+                'No se pudo leer la página directamente, intentando búsqueda web...',
                 undefined, 'error'
               ));
             }
 
-            try {
-              const urlContextResponse = await chatCompletion([
-                { role: 'system', content: 'Eres un asistente que reconstruye el contenido de un artículo a partir de resultados de búsqueda. Responde en español.' },
-                {
-                  role: 'user',
-                  content: `A partir de los siguientes resultados de búsqueda sobre una URL, reconstruye el contenido principal del artículo original. URL: ${content}\n\nResultados:\n${extractedText.slice(0, 2000)}\n\nReconstruye el artículo:`,
-                },
-              ]);
-              const reconstructed = urlContextResponse.choices[0]?.message?.content;
-              if (reconstructed && reconstructed.length > 100) {
-                extractedText = reconstructed;
+            // Strategy 2: Fall back to web search + LLM reconstruction
+            if (!readerSuccess) {
+              try {
+                const urlSearchResults = await webSearch(content.trim(), 5);
+                if (Array.isArray(urlSearchResults) && urlSearchResults.length > 0) {
+                  const combinedSnippets = urlSearchResults
+                    .map((r: { name: string; snippet: string }) => `${r.name}: ${r.snippet}`)
+                    .join('\n\n');
+                  extractedText = combinedSnippets || content;
+
+                  send(sendLog(encoder, 'extracting',
+                    'Resultados de búsqueda obtenidos como alternativa',
+                    `${urlSearchResults.length} resultados encontrados`
+                  ));
+                }
+              } catch {
+                extractedText = content;
                 send(sendLog(encoder, 'extracting',
-                  'Contenido del artículo reconstruido exitosamente',
-                  `${extractedText.split(' ').length} palabras extraídas`,
-                  'done'
+                  'No se pudieron obtener resultados de búsqueda',
+                  undefined, 'error'
                 ));
               }
-            } catch {
-              // Keep whatever we have
+
+              // Try LLM reconstruction from search snippets
+              if (extractedText !== content) {
+                try {
+                  const urlContextResponse = await chatCompletion([
+                    { role: 'system', content: 'Eres un asistente que reconstruye el contenido de un artículo a partir de resultados de búsqueda. Responde en español.' },
+                    {
+                      role: 'user',
+                      content: `A partir de los siguientes resultados de búsqueda sobre una URL, reconstruye el contenido principal del artículo original. URL: ${content}\n\nResultados:\n${extractedText.slice(0, 2000)}\n\nReconstruye el artículo:`,
+                    },
+                  ]);
+                  const reconstructed = urlContextResponse.choices[0]?.message?.content;
+                  if (reconstructed && reconstructed.length > 100) {
+                    extractedText = reconstructed;
+                    send(sendLog(encoder, 'extracting',
+                      'Contenido reconstruido a partir de búsqueda',
+                      `${extractedText.split(' ').length} palabras extraídas`,
+                      'done'
+                    ));
+                  }
+                } catch {
+                  // Keep whatever we have
+                }
+              }
             }
 
             if (extractedText === content) {
@@ -210,7 +256,9 @@ export async function POST(request: NextRequest) {
             const claimsText = claimsResponse.choices[0]?.message?.content || '[]';
             const cleaned = claimsText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             keyClaims = JSON.parse(cleaned);
-            if (!Array.isArray(keyClaims)) keyClaims = [extractedText.slice(0, 200)];
+            if (!Array.isArray(keyClaims) || keyClaims.length === 0) {
+              keyClaims = [extractedText.slice(0, 200)];
+            }
           } catch {
             keyClaims = [extractedText.slice(0, 200)];
           }

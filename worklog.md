@@ -71,3 +71,27 @@ Stage Summary:
 - Share text includes link back to the VeriNews app URL
 - Native Web Share API on mobile, dropdown options on desktop
 - Three channels: Clipboard copy, Twitter/X, WhatsApp
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix verification URL input + improve SSE robustness + webReader integration
+
+Work Log:
+- Fixed SSE parser in page.tsx: now splits by \n\n (SSE event delimiter) instead of \n for more robust chunk handling
+- Added resultReceived flag to detect when stream ends without a result event
+- Added contentType check for non-SSE error responses (JSON vs stream)
+- Improved error state UI: shows LiveLog entries that led to the error for debugging
+- Added webReader function to zai.ts for direct URL content extraction
+- Rewrote URL extraction in /api/verify: Strategy 1 = webReader (direct), Strategy 2 = webSearch + LLM reconstruction (fallback)
+- webReader strips HTML tags and extracts clean text from pages
+- Fixed empty keyClaims bug: if LLM returns empty array, fallback to extractedText
+- Updated Caddyfile with flush_interval -1 for SSE (cannot apply without root)
+- Verified SSE works correctly through Caddy proxy (port 81) - events stream in real time
+- Tested successfully with HispanTV URL: full verification completes with 15 sources, 3 silenced voices
+
+Stage Summary:
+- SSE streaming is robust: proper event delimiter parsing, partial chunk handling, result detection
+- URL input now tries direct page reading first (webReader), then falls back to search + LLM
+- Error states show the LiveLog so users can see exactly where it failed
+- HispanTV URL test passed: Score 45/100 (false), 15 sources found, 3 silenced voices detected

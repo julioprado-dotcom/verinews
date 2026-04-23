@@ -94,31 +94,51 @@ export default function Home() {
           body: JSON.stringify({ inputType, content }),
         });
 
+        // Handle non-SSE error responses
         if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || 'Error en la verificación');
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || 'Error en la verificación');
+          }
+          throw new Error(`Error del servidor (${res.status})`);
         }
 
         // Read SSE stream
         const reader = res.body?.getReader();
-        if (!reader) throw new Error('No se pudo leer la respuesta');
+        if (!reader) throw new Error('No se pudo leer la respuesta del servidor');
 
         const decoder = new TextDecoder();
         let buffer = '';
+        let resultReceived = false;
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          // Process all complete SSE events (delimited by blank lines \n\n)
+          // SSE format: "data: {...}\n\n" — we split by double newline to get events
+          const eventParts = buffer.split('\n\n');
+          // Keep the last (potentially incomplete) part in the buffer
+          buffer = eventParts.pop() || '';
 
-            const jsonStr = trimmed.slice(6); // Remove 'data: ' prefix
+          for (const eventPart of eventParts) {
+            // Extract all data lines from this event
+            const dataLines: string[] = [];
+            for (const line of eventPart.split('\n')) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data: ')) {
+                dataLines.push(trimmed.slice(6));
+              }
+            }
+
+            if (dataLines.length === 0) continue;
+
+            // Join multi-line data (SSE spec) — for us, always single line
+            const jsonStr = dataLines.join('\n');
+
             try {
               const event = JSON.parse(jsonStr);
 
@@ -130,17 +150,24 @@ export default function Home() {
                 const data: VerificationResult = event.data;
                 setResult(data);
                 setStage('complete');
+                resultReceived = true;
               } else if (event.type === 'error') {
                 throw new Error(event.message || 'Error en la verificación');
               }
             } catch (parseError) {
-              // If it's a thrown error from the error event, re-throw
-              if (parseError instanceof Error && parseError.message !== 'Unexpected token') {
+              // Re-throw intentional errors (from 'error' event type)
+              if (parseError instanceof Error && !parseError.message.includes('Unexpected')) {
                 throw parseError;
               }
-              // Otherwise skip malformed JSON
+              // Log malformed JSON and continue
+              console.warn('SSE parse warning:', parseError, 'Data:', jsonStr.slice(0, 100));
             }
           }
+        }
+
+        // If the stream ended but we never got a result, that's an error
+        if (!resultReceived) {
+          throw new Error('El servidor completó la respuesta sin enviar resultados');
         }
 
         // Refresh history
@@ -295,20 +322,29 @@ export default function Home() {
           {/* Live Log */}
           {isLoading && <LiveLog logs={logs} currentStage={stage} />}
 
-          {/* Error state */}
+          {/* Error state — show LiveLog with error entry + action buttons */}
           {stage === 'error' && !isLoading && (
-            <div className="max-w-3xl mx-auto text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-alert/15 flex items-center justify-center mx-auto">
-                <span className="text-3xl">❌</span>
+            <div className="max-w-3xl mx-auto space-y-4">
+              {/* Show the log that led to the error */}
+              {logs.length > 0 && <LiveLog logs={logs} currentStage={stage} />}
+              
+              <div className="text-center space-y-4">
+                {logs.length === 0 && (
+                  <div className="w-16 h-16 rounded-full bg-alert/15 flex items-center justify-center mx-auto">
+                    <span className="text-3xl">❌</span>
+                  </div>
+                )}
+                <h2 className="text-xl font-bold">Error en la verificación</h2>
+                <p className="text-muted-foreground">
+                  {logs.length > 0 
+                    ? 'Revisa el registro arriba para ver dónde falló el análisis.'
+                    : 'No se pudo completar el análisis. Por favor, intenta de nuevo.'}
+                </p>
+                <Button onClick={handleReset} variant="outline" className="gap-2 border-alert text-alert hover:bg-alert/10">
+                  <ArrowLeft className="w-4 h-4" />
+                  Volver a intentar
+                </Button>
               </div>
-              <h2 className="text-xl font-bold">Error en la verificación</h2>
-              <p className="text-muted-foreground">
-                No se pudo completar el análisis. Por favor, intenta de nuevo.
-              </p>
-              <Button onClick={handleReset} variant="outline" className="gap-2 border-alert text-alert hover:bg-alert/10">
-                <ArrowLeft className="w-4 h-4" />
-                Volver a intentar
-              </Button>
             </div>
           )}
 
