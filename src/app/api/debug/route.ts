@@ -8,11 +8,9 @@ export async function GET() {
       TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL ? 'SET' : 'MISSING',
       TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN ? 'SET' : 'MISSING',
       DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'MISSING',
-      ZAI_BASE_URL: process.env.ZAI_BASE_URL ? 'SET' : 'MISSING',
-      ZAI_API_KEY: process.env.ZAI_API_KEY ? 'SET' : 'MISSING',
-      ZAI_CHAT_ID: process.env.ZAI_CHAT_ID ? 'SET' : 'MISSING',
-      ZAI_USER_ID: process.env.ZAI_USER_ID ? 'SET' : 'MISSING',
-      ZAI_TOKEN: process.env.ZAI_TOKEN ? 'SET' : 'MISSING',
+      ZAI_API_KEY: process.env.ZAI_API_KEY ? 'SET (***' + (process.env.ZAI_API_KEY?.slice(-4) || '') + ')' : 'MISSING',
+      ZAI_MODEL: process.env.ZAI_MODEL || 'glm-4-flash (default)',
+      ZAI_BASE_URL: process.env.ZAI_BASE_URL || 'https://api.z.ai/api/paas/v4 (default)',
     },
   };
 
@@ -34,15 +32,11 @@ export async function GET() {
     diagnostics.libsql = { status: 'ERROR', message: error.message, stack: error.stack?.slice(0, 500) };
   }
 
-  // Test 2: z-ai-web-dev-sdk
+  // Test 2: z.ai public API (via our fetch-based client)
   try {
-    const { getZAI } = await import('@/lib/zai');
-    const zai = await getZAI();
-    const completion = await zai.chat.completions.create({
-      messages: [{ role: 'user', content: 'Responde solo: OK' }],
-      max_tokens: 5,
-    });
-    diagnostics.zai = { status: 'OK', response: completion.choices[0]?.message?.content };
+    const { checkZAIStatus } = await import('@/lib/zai');
+    const status = await checkZAIStatus();
+    diagnostics.zai = status;
   } catch (error: any) {
     diagnostics.zai = { status: 'ERROR', message: error.message, stack: error.stack?.slice(0, 500) };
   }
