@@ -48,7 +48,7 @@ export function DimensionCard({ dimensionKey, dimension }: DimensionCardProps) {
   const effectiveScore = isInverse ? 100 - dimension.score : dimension.score;
 
   return (
-    <Card className="border-border/50 hover:border-neon/30 transition-colors">
+    <Card className="border-border/50 transition-colors">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
