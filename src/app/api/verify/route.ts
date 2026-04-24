@@ -216,47 +216,61 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
   "summary": "<resumen ejecutivo de 3-5 oraciones>"
 }`;
 
-          // Single retry with long delay — no double-retry amplification
-          // chatCompletion has NO internal retry, so this is the ONLY retry layer
+          // Strategy: Try GLM-4.7-Flash (free) → fallback GLM-4.5-Flash (free)
+          // Both models are 100% free on z.ai, no balance required
+          const FREE_MODELS = ['glm-4.7-flash', 'glm-4.5-flash'];
           let megaResponse: any = null;
+          let usedModel: string = '';
 
-          try {
-            megaResponse = await chatCompletion([
-              { role: 'system', content: SYSTEM_PROMPT },
-              { role: 'user', content: megaPrompt },
-            ], { max_tokens: 4096 });
-          } catch (error: any) {
-            const errorMsg = error?.message || '';
-            const isRateLimit = errorMsg.includes('429') || errorMsg.includes('rate') || errorMsg.includes('overload') || errorMsg.includes('1302') || errorMsg.includes('1305');
-
-            if (isRateLimit) {
-              // One single retry with a 20-second delay to let rate limit window reset
+          for (const model of FREE_MODELS) {
+            try {
               send(sendLog(encoder, 'analyzing',
-                'Servidor ocupado, esperando 20s antes de reintentar...',
-                'El servicio de IA está temporalmente saturado — reintentando una vez más',
+                `Consultando modelo ${model}...`,
+                'Análisis Crítico-Pluralista completo en curso'
               ));
-              await delay(20000);
+              megaResponse = await chatCompletion([
+                { role: 'system', content: SYSTEM_PROMPT },
+                { role: 'user', content: megaPrompt },
+              ], { max_tokens: 4096, model });
+              usedModel = model;
+              break; // Success — exit the retry loop
+            } catch (error: any) {
+              const errorMsg = error?.message || '';
+              const isRecoverable = errorMsg.includes('429') || errorMsg.includes('rate') || errorMsg.includes('overload') || errorMsg.includes('1302') || errorMsg.includes('1305') || errorMsg.includes('balance');
 
-              try {
-                megaResponse = await chatCompletion([
-                  { role: 'system', content: SYSTEM_PROMPT },
-                  { role: 'user', content: megaPrompt },
-                ], { max_tokens: 4096 });
-              } catch (retryError: any) {
-                const retryMsg = retryError?.message || '';
-                const retryIsRateLimit = retryMsg.includes('429') || retryMsg.includes('rate') || retryMsg.includes('overload');
-                if (retryIsRateLimit) {
+              if (isRecoverable && model !== FREE_MODELS[FREE_MODELS.length - 1]) {
+                // Try next free model
+                send(sendLog(encoder, 'analyzing',
+                  `${model} no disponible, probando modelo alternativo...`,
+                  'Cambiando a modelo gratuito de respaldo',
+                ));
+                await delay(3000);
+                continue;
+              } else if (isRecoverable) {
+                // Last model also failed — wait and retry once more
+                send(sendLog(encoder, 'analyzing',
+                  'Servidor ocupado, esperando 15s antes de reintentar...',
+                  'Todos los modelos gratuitos están saturados — último intento',
+                ));
+                await delay(15000);
+                try {
+                  megaResponse = await chatCompletion([
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: megaPrompt },
+                  ], { max_tokens: 4096, model: FREE_MODELS[0] });
+                  usedModel = FREE_MODELS[0];
+                  break;
+                } catch {
                   throw new Error('El servicio de IA está saturado. Espera 1-2 minutos e intenta de nuevo.');
                 }
-                throw retryError;
+              } else {
+                throw error; // Non-recoverable error (bad request, auth, etc.)
               }
-            } else {
-              throw error;
             }
           }
 
           if (!megaResponse) {
-            throw new Error('No se pudo obtener respuesta del servicio de IA después de múltiples intentos.');
+            throw new Error('No se pudo obtener respuesta del servicio de IA.');
           }
 
           // ─────────────────────────────────────────
@@ -334,7 +348,7 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
 
             send(sendLog(encoder, 'generating',
               `Análisis completado — Score: ${overallScore}/100 (${veracityLevel})`,
-              `Voces silenciadas: ${analysisResult.silencedVoices.length} | Fuentes: ${classifiedSources.length}`,
+              `Modelo: ${usedModel} | Voces silenciadas: ${analysisResult.silencedVoices.length} | Fuentes: ${classifiedSources.length}`,
               'done'
             ));
           } catch (parseError) {
