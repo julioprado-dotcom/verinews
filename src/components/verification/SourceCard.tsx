@@ -25,26 +25,22 @@ const RELATION_COLORS: Record<string, string> = {
 
 export function SourceCard({ source }: SourceCardProps) {
   return (
-    <Card className="border-border/50 transition-colors overflow-hidden">
+    <Card className="border-border/50 hover:border-neon/30 transition-colors overflow-hidden">
       <CardContent className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">{SOURCE_CATEGORY_ICONS[source.category]}</span>
-              {source.url ? (
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-semibold hover:text-neon transition-colors truncate flex items-center gap-1 group"
-                >
-                  <span className="group-hover:underline">{source.name}</span>
-                  <ExternalLink className="w-3 h-3 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
-                </a>
-              ) : (
-                <span className="text-sm font-semibold truncate">{source.name}</span>
-              )}
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-semibold hover:text-neon transition-colors truncate flex items-center gap-1"
+              >
+                {source.name}
+                <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
             <p className="text-xs text-muted-foreground">{source.hostName}</p>
           </div>
