@@ -7,12 +7,12 @@
  * - ZAI_API_KEY: Your z.ai API key (get it from https://z.ai dashboard)
  *
  * Optional env vars:
- * - ZAI_MODEL: Model to use (default: "glm-4.5-air")
+ * - ZAI_MODEL: Model to use (default: "glm-4.7-flash" — FREE on z.ai)
  * - ZAI_BASE_URL: Override base URL (default: "https://api.z.ai/api/paas/v4")
  */
 
 const DEFAULT_BASE_URL = 'https://api.z.ai/api/paas/v4';
-const DEFAULT_MODEL = 'glm-4.5-air';
+const DEFAULT_MODEL = 'glm-4.7-flash';
 
 function getBaseUrl(): string {
   return process.env.ZAI_BASE_URL || DEFAULT_BASE_URL;
