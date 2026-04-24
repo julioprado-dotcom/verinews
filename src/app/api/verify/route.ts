@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { chatCompletion, webSearch, delay } from '@/lib/zai';
 import { db } from '@/lib/db';
+
+const encoder = new TextEncoder();
 import type {
   VerificationRequest,
   VerificationResult,
@@ -98,21 +100,40 @@ function sendLog(
   return `data: ${data}\n\n`;
 }
 
-export async function POST(request: NextRequest) {
-  const encoder = new TextEncoder();
+/** Helper to create an SSE error stream (used when errors happen before the main stream starts) */
+function createErrorStream(errorMessage: string, detail?: string) {
+  const errorLog = sendLog(encoder, 'error', errorMessage, detail, 'error');
+  const errorEvent = `data: ${JSON.stringify({ type: 'error', message: errorMessage })}\n\n`;
+  const fullStream = errorLog + errorEvent;
 
+  return new Response(
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(fullStream));
+        controller.close();
+      },
+    }),
+    {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      },
+    }
+  );
+}
+
+export async function POST(request: NextRequest) {
   try {
     const body: VerificationRequest = await request.json();
     const { inputType, content } = body;
 
     if (!content || content.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'El contenido a verificar es obligatorio' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return createErrorStream('El contenido a verificar es obligatorio');
     }
 
-    // Create a TransformStream for SSE
+    // Create a ReadableStream for SSE — ALL logic and errors are handled inside
     const stream = new ReadableStream({
       async start(controller) {
         let closed = false;
@@ -602,10 +623,9 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
       },
     });
   } catch (error) {
-    console.error('Verification error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Error interno durante la verificación' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    console.error('Verification route error:', error);
+    const msg = error instanceof Error ? error.message : 'Error interno durante la verificación';
+    // Return SSE error stream instead of JSON 500 — so the frontend can show LiveLog
+    return createErrorStream(`Error del servidor: ${msg}`, 'Revisa las variables de entorno y la conexión a la base de datos');
   }
 }

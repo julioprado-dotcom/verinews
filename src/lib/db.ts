@@ -19,6 +19,15 @@ function createDbClient(): Client {
   })
 }
 
-export const db = globalForDb.db ?? createDbClient()
+// Safe initialization — if the client can't be created, provide a no-op fallback
+let dbClient: Client;
+try {
+  dbClient = globalForDb.db ?? createDbClient()
+  if (process.env.NODE_ENV !== 'production') globalForDb.db = dbClient
+} catch (error) {
+  console.error('Failed to initialize database client:', error)
+  // Create a fallback client that won't crash but will report errors on query
+  dbClient = createClient({ url: 'file:./fallback.db' })
+}
 
-if (process.env.NODE_ENV !== 'production') globalForDb.db = db
+export const db = dbClient

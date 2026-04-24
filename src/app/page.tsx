@@ -80,12 +80,39 @@ export default function Home() {
     }
   };
 
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
+
   const handleSubmit = useCallback(
     async (inputType: InputType, content: string) => {
       setIsLoading(true);
       setResult(null);
-      setLogs([]);
+      setDebugInfo(null);
       setStage('extracting');
+
+      // Add initial log entries so the LiveLog shows immediately
+      const startTs = Date.now();
+      const initialLogs: LogEntry[] = [
+        {
+          id: `start-${startTs}`,
+          timestamp: startTs,
+          stage: 'extracting',
+          message: 'Iniciando verificación Crítico-Pluralista...',
+          status: 'running',
+        },
+        {
+          id: `input-${startTs}`,
+          timestamp: startTs + 50,
+          stage: 'extracting',
+          message: inputType === 'url'
+            ? `URL recibida: ${content.slice(0, 80)}${content.length > 80 ? '...' : ''}`
+            : inputType === 'claim'
+            ? `Afirmación recibida: ${content.split(' ').length} palabras`
+            : `Texto recibido: ${content.split(' ').length} palabras`,
+          detail: 'Conectando con el servidor de análisis...',
+          status: 'running',
+        },
+      ];
+      setLogs(initialLogs);
 
       try {
         const res = await fetch('/api/verify', {
@@ -94,14 +121,23 @@ export default function Home() {
           body: JSON.stringify({ inputType, content }),
         });
 
-        // Handle non-SSE error responses
+        // Handle non-SSE error responses (module-level failures, edge runtime errors)
         if (!res.ok) {
           const contentType = res.headers.get('content-type') || '';
+          let errorMessage = `Error del servidor (${res.status})`;
+
           if (contentType.includes('application/json')) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || 'Error en la verificación');
+            try {
+              const errData = await res.json();
+              errorMessage = errData.error || errorMessage;
+            } catch { /* use default */ }
+          } else if (contentType.includes('text/plain')) {
+            try {
+              errorMessage = await res.text();
+            } catch { /* use default */ }
           }
-          throw new Error(`Error del servidor (${res.status})`);
+
+          throw new Error(errorMessage);
         }
 
         // Read SSE stream
@@ -182,6 +218,7 @@ export default function Home() {
             timestamp: Date.now(),
             stage: 'error',
             message: error instanceof Error ? error.message : 'Error desconocido durante la verificación',
+            detail: 'El servidor no pudo procesar la solicitud. Puede ser un problema de configuración (variables de entorno) o de conexión.',
             status: 'error',
           },
         ]);
@@ -196,6 +233,18 @@ export default function Home() {
     setResult(null);
     setStage('idle');
     setLogs([]);
+    setDebugInfo(null);
+  };
+
+  const runDiagnostics = async () => {
+    setDebugInfo('Ejecutando diagnóstico...');
+    try {
+      const res = await fetch('/api/debug');
+      const data = await res.json();
+      setDebugInfo(JSON.stringify(data, null, 2));
+    } catch (err) {
+      setDebugInfo(`Error al ejecutar diagnóstico: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+    }
   };
 
   const filteredSources =
@@ -322,28 +371,48 @@ export default function Home() {
           {/* Live Log */}
           {isLoading && <LiveLog logs={logs} currentStage={stage} />}
 
-          {/* Error state — show LiveLog with error entry + action buttons */}
+          {/* Error state — always show LiveLog with error entry + action buttons */}
           {stage === 'error' && !isLoading && (
             <div className="max-w-3xl mx-auto space-y-4">
-              {/* Show the log that led to the error */}
-              {logs.length > 0 && <LiveLog logs={logs} currentStage={stage} />}
+              {/* Always show the LiveLog console in error state */}
+              <LiveLog logs={logs} currentStage={stage} />
               
               <div className="text-center space-y-4">
-                {logs.length === 0 && (
-                  <div className="w-16 h-16 rounded-full bg-alert/15 flex items-center justify-center mx-auto">
-                    <span className="text-3xl">❌</span>
-                  </div>
-                )}
                 <h2 className="text-xl font-bold">Error en la verificación</h2>
                 <p className="text-muted-foreground">
-                  {logs.length > 0 
-                    ? 'Revisa el registro arriba para ver dónde falló el análisis.'
-                    : 'No se pudo completar el análisis. Por favor, intenta de nuevo.'}
+                  Revisa el registro arriba para ver dónde falló el análisis.
                 </p>
-                <Button onClick={handleReset} variant="outline" className="gap-2 border-alert text-alert hover:bg-alert/10">
-                  <ArrowLeft className="w-4 h-4" />
-                  Volver a intentar
-                </Button>
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <Button onClick={handleReset} variant="outline" className="gap-2 border-alert text-alert hover:bg-alert/10">
+                    <ArrowLeft className="w-4 h-4" />
+                    Volver a intentar
+                  </Button>
+                  <Button onClick={runDiagnostics} variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+                    🔧 Diagnóstico del servidor
+                  </Button>
+                </div>
+
+                {/* Debug info panel */}
+                {debugInfo && (
+                  <div className="mt-4 text-left">
+                    <div className="bg-card border border-border rounded-xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                        <span className="text-xs font-mono text-muted-foreground">Diagnóstico del servidor</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs text-muted-foreground"
+                          onClick={() => navigator.clipboard.writeText(debugInfo)}
+                        >
+                          Copiar
+                        </Button>
+                      </div>
+                      <pre className="p-4 text-xs font-mono text-foreground/80 overflow-auto max-h-60 whitespace-pre-wrap">
+                        {debugInfo}
+                      </pre>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
