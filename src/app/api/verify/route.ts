@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { chatCompletion, webSearch, delay } from '@/lib/zai';
+import { chatCompletion, delay } from '@/lib/zai';
 import { db } from '@/lib/db';
 
 const encoder = new TextEncoder();
@@ -100,7 +100,7 @@ function sendLog(
   return `data: ${data}\n\n`;
 }
 
-/** Helper to create an SSE error stream (used when errors happen before the main stream starts) */
+/** Helper to create an SSE error stream */
 function createErrorStream(errorMessage: string, detail?: string) {
   const errorLog = sendLog(encoder, 'error', errorMessage, detail, 'error');
   const errorEvent = `data: ${JSON.stringify({ type: 'error', message: errorMessage })}\n\n`;
@@ -125,17 +125,18 @@ function createErrorStream(errorMessage: string, detail?: string) {
 }
 
 /**
- * OPTIMIZED VERIFICATION FLOW
+ * ULTRA-OPTIMIZED VERIFICATION FLOW
  * 
- * Before: 7-9 API calls (3 searches, 3 chat completions, 1 counter-search)
- * Now:    2-3 API calls (1 search + 1-2 chat completions)
+ * v1: 7-9 API calls → Rate limit hell
+ * v2: 2-3 API calls → Still hitting 429
+ * v3: 1 API call (mega-prompt only) → Maximum rate limit survival
  * 
- * Strategy: Consolidate all analysis into a single mega-prompt that:
- * 1. Extracts claims
- * 2. Classifies sources
- * 3. Performs 6-dimension analysis
- * 4. Identifies silenced voices
- * All in one API call.
+ * The webSearch is removed because:
+ * - It may fall back to chatCompletion (consuming extra rate limit)
+ * - The LLM's training data already includes knowledge of sources
+ * - One call = zero risk of cascading rate limit failures
+ * 
+ * Retry strategy: 3 attempts with exponential backoff (5s, 15s, 30s)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -146,7 +147,6 @@ export async function POST(request: NextRequest) {
       return createErrorStream('El contenido a verificar es obligatorio');
     }
 
-    // Create a ReadableStream for SSE
     const stream = new ReadableStream({
       async start(controller) {
         let closed = false;
@@ -162,82 +162,30 @@ export async function POST(request: NextRequest) {
 
         try {
           // ─────────────────────────────────────────
-          // STEP 1: Search for sources (SINGLE search)
+          // STEP 1: MEGA-PROMPT — Single API call
           // ─────────────────────────────────────────
           send(sendLog(encoder, 'extracting',
             inputType === 'url'
-              ? 'Procesando URL y buscando fuentes...'
-              : 'Procesando texto y buscando fuentes...',
+              ? 'Procesando URL para verificación...'
+              : 'Procesando texto para verificación...',
             inputType === 'url' ? `URL: ${content.slice(0, 80)}` : `${content.split(' ').length} palabras recibidas`
           ));
 
-          let searchResultsText = '';
-          const allSearchResults: Array<{
-            url: string;
-            name: string;
-            snippet: string;
-            host_name: string;
-          }> = [];
-
-          // Single comprehensive search combining the main topic + counter-narratives
-          try {
-            const searchQuery = inputType === 'url'
-              ? content.trim()
-              : content.slice(0, 150).trim();
-
-            const results = await webSearch(searchQuery, 10);
-            if (Array.isArray(results) && results.length > 0) {
-              allSearchResults.push(...results);
-              searchResultsText = results
-                .map((r: { name: string; snippet: string; url: string; host_name: string }, i: number) =>
-                  `${i + 1}. ${r.name} (${r.host_name})\n   URL: ${r.url}\n   Fragmento: ${r.snippet}`
-                )
-                .join('\n\n');
-
-              send(sendLog(encoder, 'extracting',
-                `${results.length} fuentes encontradas`,
-                'Búsqueda web completada',
-                'done'
-              ));
-            }
-          } catch {
-            send(sendLog(encoder, 'extracting',
-              'Búsqueda web no disponible, continuando con análisis del texto',
-              undefined, 'error'
-            ));
-          }
-
-          // ─────────────────────────────────────────
-          // STEP 2: MEGA-PROMPT — All analysis in ONE call
-          // ─────────────────────────────────────────
           send(sendLog(encoder, 'analyzing',
             'Ejecutando análisis Crítico-Pluralista completo...',
-            'Extracción · Clasificación · 6 Dimensiones · Voces silenciadas'
+            'Extracción · Búsqueda de fuentes · 6 Dimensiones · Voces silenciadas'
           ));
-
-          // Add a small delay to avoid hitting rate limit from the search call
-          await delay(1000);
 
           const extractedText = content;
 
-          const sourcesSection = searchResultsText
-            ? `FUENTES ENCONTRADAS MEDIANTE BÚSQUEDA WEB:\n${searchResultsText}`
-            : 'No se encontraron fuentes adicionales mediante búsqueda web. Analiza basándote en tu conocimiento.';
-
-          const megaResponse = await chatCompletion([
-            { role: 'system', content: SYSTEM_PROMPT },
-            {
-              role: 'user',
-              content: `Realiza un análisis COMPLETO de verificación Crítico-Pluralista de la siguiente noticia. Debes hacer TODO en una sola respuesta:
+          const megaPrompt = `Realiza un análisis COMPLETO de verificación Crítico-Pluralista de la siguiente noticia. Debes hacer TODO en una sola respuesta:
 
 NOTICIA/AFIRMACIÓN A VERIFICAR:
 ${extractedText.slice(0, 4000)}
 
-${sourcesSection}
-
 INSTRUCCIONES:
-1. Extrae las 3-5 afirmaciones clave verificables
-2. Clasifica CADA fuente encontrada por categoría, orientación y perspectiva geopolítica
+1. Extrae las 3-5 afirmaciones clave verificables del texto
+2. Busca en tu conocimiento fuentes relevantes (reales, no inventadas) que confirmen, contradigan o matizen la noticia. Incluye fuentes de DIFERENTES categorías (Colectivo Occidental, Sur Global, independientes, académicas, de resistencia). Para cada fuente, indica su URL real si la conoces.
 3. Evalúa las 6 dimensiones con score 0-100 y análisis detallado
 4. Identifica voces silenciadas y perspectivas omitidas
 5. Calcula un score general de veracidad ponderando la diversidad de fuentes
@@ -248,7 +196,9 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
   "keyClaims": ["afirmación 1", "afirmación 2", ...],
   "sources": [
     {
-      "index": 1,
+      "name": "Nombre del medio o fuente",
+      "url": "URL real si se conoce, o cadena vacía",
+      "snippet": "Resumen de lo que dice esta fuente sobre el tema",
       "category": "colectivo_occidental|sur_global|independiente|academico|resistencia",
       "orientation": "estatal|corporativo|comunitario|independiente|academico",
       "geopoliticalPerspective": "alineado_otan|alineado_usa|alineado_ue|no_alineado|critico_orden_global|multipolar",
@@ -264,12 +214,54 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
   "biasManipulation": {"score": <0-100>, "title": "Sesgo y Manipulación", "description": "<análisis detallado>", "evidence": ["<evidencia1>", "<evidencia2>"]},
   "silencedVoices": [{"perspective": "<quién>", "description": "<qué perspectiva falta>", "context": "<por qué es relevante>"}],
   "summary": "<resumen ejecutivo de 3-5 oraciones>"
-}`,
-            },
-          ], { max_tokens: 4096 });
+}`;
+
+          // Retry with exponential backoff for rate limiting
+          const MAX_RETRIES = 3;
+          const RETRY_DELAYS = [5000, 15000, 30000]; // 5s, 15s, 30s
+          let megaResponse: any = null;
+
+          for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+              if (attempt > 0) {
+                const waitTime = RETRY_DELAYS[attempt - 1];
+                send(sendLog(encoder, 'analyzing',
+                  `Servidor ocupado, reintentando en ${waitTime / 1000}s... (intento ${attempt + 1}/${MAX_RETRIES + 1})`,
+                  'El servicio de IA está temporalmente saturado',
+                ));
+                await delay(waitTime);
+              }
+
+              megaResponse = await chatCompletion([
+                { role: 'system', content: SYSTEM_PROMPT },
+                { role: 'user', content: megaPrompt },
+              ], { max_tokens: 4096 });
+
+              // If we got here, the call succeeded
+              break;
+            } catch (error: any) {
+              const errorMsg = error?.message || '';
+              const isRateLimit = errorMsg.includes('429') || errorMsg.includes('rate') || errorMsg.includes('overload');
+
+              if (isRateLimit && attempt < MAX_RETRIES) {
+                // Will retry on next loop iteration
+                continue;
+              } else if (isRateLimit) {
+                // Final attempt failed
+                throw new Error('El servicio de IA está saturado. Por favor espera unos minutos e intenta de nuevo.');
+              } else {
+                // Non-rate-limit error, don't retry
+                throw error;
+              }
+            }
+          }
+
+          if (!megaResponse) {
+            throw new Error('No se pudo obtener respuesta del servicio de IA después de múltiples intentos.');
+          }
 
           // ─────────────────────────────────────────
-          // STEP 3: Parse the mega-response
+          // STEP 2: Parse the mega-response
           // ─────────────────────────────────────────
           let analysisResult: VerificationResult;
 
@@ -297,31 +289,24 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               evidence: raw.evidence || [],
             });
 
-            // Build classified sources from search results + LLM classification
+            // Build classified sources from LLM-generated sources
             let classifiedSources: SourceResult[] = [];
-            if (allSearchResults.length > 0 && Array.isArray(parsed.sources)) {
-              classifiedSources = allSearchResults.slice(0, 15).map((result, idx) => {
-                const classification = parsed.sources.find(
-                  (c: { index?: number }) => c.index === idx + 1
-                ) || parsed.sources[idx] || {};
-
-                return {
-                  name: result.name,
-                  url: result.url,
-                  snippet: result.snippet,
-                  category: (classification.category as SourceCategory) || 'independiente',
-                  orientation: (classification.orientation as SourceOrientation) || 'independiente',
-                  geopoliticalPerspective:
-                    (classification.geopoliticalPerspective as GeopoliticalPerspective) || 'no_alineado',
-                  relationToNews: (classification.relationToNews as SourceRelation) || 'sin_relacion',
-                  hostName: result.host_name,
-                };
-              });
+            if (Array.isArray(parsed.sources)) {
+              classifiedSources = parsed.sources.map((s: any) => ({
+                name: s.name || 'Fuente sin nombre',
+                url: s.url || '',
+                snippet: s.snippet || '',
+                category: (s.category as SourceCategory) || 'independiente',
+                orientation: (s.orientation as SourceOrientation) || 'independiente',
+                geopoliticalPerspective: (s.geopoliticalPerspective as GeopoliticalPerspective) || 'no_alineado',
+                relationToNews: (s.relationToNews as SourceRelation) || 'sin_relacion',
+                hostName: s.url ? (() => { try { return new URL(s.url.startsWith('http') ? s.url : `https://${s.url}`).hostname; } catch { return ''; } })() : '',
+              })).filter((s: SourceResult) => s.name !== 'Fuente sin nombre' || s.snippet);
             }
 
             const keyClaims: string[] = Array.isArray(parsed.keyClaims) ? parsed.keyClaims : [extractedText.slice(0, 200)];
 
-            // Log intermediate progress
+            // Log progress
             send(sendLog(encoder, 'analyzing',
               `${keyClaims.length} afirmaciones clave identificadas`,
               keyClaims.map((c: string, i: number) => `${i + 1}. ${c.slice(0, 60)}...`).join('\n'),
@@ -355,19 +340,6 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
             ));
           } catch (parseError) {
             console.error('Parse error:', parseError);
-            // Fallback result
-            const keyClaims = [extractedText.slice(0, 200)];
-            const classifiedSources = allSearchResults.slice(0, 15).map((result) => ({
-              name: result.name,
-              url: result.url,
-              snippet: result.snippet,
-              category: 'independiente' as SourceCategory,
-              orientation: 'independiente' as SourceOrientation,
-              geopoliticalPerspective: 'no_alineado' as GeopoliticalPerspective,
-              relationToNews: 'sin_relacion' as SourceRelation,
-              hostName: result.host_name,
-            }));
-
             analysisResult = {
               overallScore: 50,
               veracityLevel: 'dubious',
@@ -377,10 +349,10 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               sensationalism: { score: 50, level: 'medium', title: 'Lenguaje Sensacionalista', description: 'No se pudo completar el análisis detallado', evidence: [] },
               factualAccuracy: { score: 50, level: 'medium', title: 'Veracidad Factual', description: 'No se pudo completar el análisis detallado', evidence: [] },
               biasManipulation: { score: 50, level: 'medium', title: 'Sesgo y Manipulación', description: 'No se pudo completar el análisis detallado', evidence: [] },
-              sourcesFound: classifiedSources,
+              sourcesFound: [],
               silencedVoices: [],
               summary: 'El análisis no pudo completarse completamente. Intenta de nuevo.',
-              keyClaims,
+              keyClaims: [extractedText.slice(0, 200)],
             };
 
             send(sendLog(encoder, 'generating',
@@ -391,7 +363,7 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
           }
 
           // ─────────────────────────────────────────
-          // STEP 4: Save to database
+          // STEP 3: Save to database
           // ─────────────────────────────────────────
           send(sendLog(encoder, 'saving',
             'Guardando resultados en la base de datos...'
