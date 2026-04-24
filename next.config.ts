@@ -8,10 +8,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: [
-    '@libsql/client',
-    'z-ai-web-dev-sdk',
-  ],
+  // NOTE: Do NOT use serverExternalPackages — EdgeOne's serverless runtime
+  // cannot resolve externalized packages. Both @libsql/client and
+  // z-ai-web-dev-sdk must be bundled into the SSR function.
 };
 
 export default nextConfig;

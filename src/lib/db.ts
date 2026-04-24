@@ -1,11 +1,14 @@
-import { createClient, type Client } from '@libsql/client'
+// Use /web explicitly — this is the pure JS/WASM implementation that works
+// on edge/serverless runtimes (EdgeOne, Cloudflare Workers, Vercel Edge, etc.)
+// and avoids Turbopack's auto-externalization of the default @libsql/client entry.
+import { createClient, type Client } from '@libsql/client/web'
 
 const globalForDb = globalThis as unknown as {
   db: Client | undefined
 }
 
 function createDbClient(): Client {
-  // If TURSO_URL is set, use Turso (remote libSQL)
+  // If TURSO_URL is set, use Turso (remote libSQL over HTTP)
   if (process.env.TURSO_DATABASE_URL) {
     return createClient({
       url: process.env.TURSO_DATABASE_URL,
