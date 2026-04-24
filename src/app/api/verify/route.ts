@@ -236,7 +236,7 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               break; // Success — exit the retry loop
             } catch (error: any) {
               const errorMsg = error?.message || '';
-              const isRecoverable = errorMsg.includes('429') || errorMsg.includes('rate') || errorMsg.includes('overload') || errorMsg.includes('1302') || errorMsg.includes('1305') || errorMsg.includes('balance');
+              const isRecoverable = errorMsg.includes('429') || errorMsg.includes('500') || errorMsg.includes('rate') || errorMsg.includes('overload') || errorMsg.includes('1234') || errorMsg.includes('1302') || errorMsg.includes('1305') || errorMsg.includes('balance') || errorMsg.includes('network failure');
 
               if (isRecoverable && model !== FREE_MODELS[FREE_MODELS.length - 1]) {
                 // Try next free model
