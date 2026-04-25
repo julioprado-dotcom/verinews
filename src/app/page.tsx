@@ -12,6 +12,8 @@ import { ShareResult } from '@/components/verification/ShareResult';
 import { HistoryList } from '@/components/verification/HistoryList';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { ExpandedFooter } from '@/components/ExpandedFooter';
+import { AuthModal } from '@/components/AuthModal';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -27,6 +29,10 @@ import {
   Sun,
   Filter,
   X,
+  User,
+  LogOut,
+  Zap,
+  Crown,
 } from '@/lib/icons';
 import type {
   InputType,
@@ -46,6 +52,7 @@ import {
 
 export default function Home() {
   const { t } = useI18n();
+  const { user, usage, login, register, logout, refreshUsage } = useAuth();
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [stage, setStage] = useState<AnalysisStage>('idle');
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +64,7 @@ export default function Home() {
   const [activeGeopoliticalFilter, setActiveGeopoliticalFilter] = useState<string>('all');
   const [activeOrientationFilter, setActiveOrientationFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Initialize dark mode
   useEffect(() => {
@@ -85,6 +93,8 @@ export default function Home() {
   // Fetch history on mount
   useEffect(() => {
     fetchHistory();
+    // Initialize DB tables (user system)
+    fetch('/api/init-db').catch(() => {});
   }, []);
 
   const fetchHistory = async () => {
@@ -131,9 +141,13 @@ export default function Home() {
       setLogs(initialLogs);
 
       try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('verinews-token') : null;
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch('/api/verify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ inputType, content }),
         });
 
@@ -213,6 +227,7 @@ export default function Home() {
         }
 
         fetchHistory();
+        refreshUsage();
       } catch (error) {
         console.error('Verification failed:', error);
         setStage('error');
@@ -309,6 +324,22 @@ export default function Home() {
           <div className="flex items-center gap-1">
             <LanguageSelector />
 
+            {/* Usage counter */}
+            {usage && (
+              <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted/30">
+                {usage.tier === 'premium' ? (
+                  <Crown className="w-3 h-3 text-trend" />
+                ) : usage.tier === 'registered' ? (
+                  <Zap className="w-3 h-3 text-neon" />
+                ) : (
+                  <Eye className="w-3 h-3 text-muted-foreground" />
+                )}
+                <span className="text-[9px] text-muted-foreground font-medium">
+                  {usage.limit === -1 ? t.tierUnlimited : `${usage.remaining}/${usage.limit}`}
+                </span>
+              </div>
+            )}
+
             {/* Theme toggle */}
             <button
               type="button"
@@ -349,6 +380,32 @@ export default function Home() {
                 </Badge>
               )}
             </Button>
+
+            {/* Auth button */}
+            {user ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[9px] text-muted-foreground hidden sm:inline">{user.email.split('@')[0]}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-muted-foreground h-7 text-[10px]"
+                  onClick={logout}
+                  title={t.authLogout}
+                >
+                  <LogOut className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1 text-neon h-7 text-[10px]"
+                onClick={() => setAuthModalOpen(true)}
+              >
+                <User className="w-3 h-3" />
+                <span className="hidden sm:inline">{t.authLogin}</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -685,6 +742,9 @@ export default function Home() {
 
       {/* Expanded Footer */}
       <ExpandedFooter />
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }

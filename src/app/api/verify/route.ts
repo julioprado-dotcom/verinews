@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { chatCompletion, delay } from '@/lib/zai';
 import { db } from '@/lib/db';
+import { verifyToken, TIER_LIMITS, type UserTier } from '@/lib/auth';
 
 const encoder = new TextEncoder();
 import type {
@@ -140,6 +141,52 @@ function createErrorStream(errorMessage: string, detail?: string) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // ─────────────────────────────────────────
+    // RATE LIMITING: Check daily usage per tier
+    // ─────────────────────────────────────────
+    let tier: UserTier = 'free';
+    let userId: string | null = null;
+
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    if (token) {
+      const authUser = await verifyToken(token);
+      if (authUser) {
+        tier = authUser.tier;
+        userId = authUser.id;
+      }
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const limit = TIER_LIMITS[tier];
+
+    // Count today's verifications
+    let used = 0;
+    if (userId) {
+      const countResult = await db.execute({
+        sql: 'SELECT COUNT(*) as count FROM DailyUsage WHERE userId = ? AND date = ?',
+        args: [userId, today],
+      });
+      used = (countResult.rows[0]?.count as number) || 0;
+    } else {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+        || request.headers.get('x-real-ip')
+        || 'unknown';
+      const countResult = await db.execute({
+        sql: 'SELECT COUNT(*) as count FROM DailyUsage WHERE ip = ? AND date = ? AND userId IS NULL',
+        args: [ip, today],
+      });
+      used = (countResult.rows[0]?.count as number) || 0;
+    }
+
+    if (limit !== Infinity && used >= limit) {
+      const tierLabel = tier === 'free' ? 'Básico' : 'Registrado';
+      const nextTier = tier === 'free' ? 'registrado (20/día)' : 'Premium (ilimitado)';
+      return createErrorStream(
+        `Límite diario alcanzado (${used}/${limit}). Plan ${tierLabel}: ${limit} verificaciones por día. Regístrate o mejora a ${nextTier} para más consultas.`
+      );
+    }
+
     const body: VerificationRequest = await request.json();
     const { inputType, content } = body;
 
@@ -433,6 +480,21 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               'Resultados guardados correctamente',
               undefined, 'done'
             ));
+
+            // Track daily usage for rate limiting
+            try {
+              const usageId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-usage`;
+              const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+                || request.headers.get('x-real-ip')
+                || 'unknown';
+              await db.execute({
+                sql: `INSERT INTO DailyUsage (id, userId, ip, date, verificationId, createdAt)
+                      VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+                args: [usageId, userId, ip, today, id],
+              });
+            } catch (usageErr) {
+              console.error('Usage tracking error:', usageErr);
+            }
           } catch {
             send(sendLog(encoder, 'saving',
               'No se pudo guardar en la base de datos (resultados mostrados de todos modos)',
