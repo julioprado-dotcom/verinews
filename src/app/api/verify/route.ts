@@ -238,7 +238,19 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               break; // Success — exit the retry loop
             } catch (error: any) {
               lastError = error?.message || '';
-              const isRecoverable = lastError.includes('429') || lastError.includes('500') || lastError.includes('524') || lastError.includes('rate') || lastError.includes('overload') || lastError.includes('1234') || lastError.includes('1302') || lastError.includes('1305') || lastError.includes('balance') || lastError.includes('network failure') || lastError.includes('timed out');
+              
+              // Check for specific non-recoverable errors first
+              if (lastError.includes('1113') || lastError.includes('arrears') || (lastError.includes('429') && lastError.includes('balance'))) {
+                throw new Error(
+                  'Tu cuenta de z.ai está en mora (sin saldo). ' +
+                  'Aunque los modelos GLM-4.7-Flash y GLM-4.5-Flash son gratuitos, ' +
+                  'z.ai requiere que la cuenta esté activa. ' +
+                  'Ve a https://z.ai/dashboard y recarga al menos $1 para reactivarla, ' +
+                  'o activa un paquete de recursos gratuito.'
+                );
+              }
+              
+              const isRecoverable = lastError.includes('429') || lastError.includes('500') || lastError.includes('524') || lastError.includes('rate') || lastError.includes('overload') || lastError.includes('1234') || lastError.includes('1302') || lastError.includes('1305') || lastError.includes('network failure') || lastError.includes('timed out');
 
               if (isRecoverable && model !== FREE_MODELS[FREE_MODELS.length - 1]) {
                 // Try next free model (short delay to avoid EdgeOne timeout)
