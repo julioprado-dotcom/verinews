@@ -363,11 +363,6 @@ export default function Home() {
             <div className="space-y-3">
               {/* Hero text */}
               <div className="text-center space-y-1 max-w-2xl mx-auto">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <Badge variant="outline" className="border-neon/50 text-neon text-[10px]">
-                    Enfoque Crítico-Pluralista
-                  </Badge>
-                </div>
                 <h1 className="text-xl md:text-3xl font-bold tracking-tight">
                   Desenmascara la
                   <span className="text-neon"> desinformación</span>
@@ -376,6 +371,11 @@ export default function Home() {
                   Verifica noticias con un análisis que no solo detecta datos falsos, sino que
                   visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas.
                 </p>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                  <Badge variant="outline" className="border-neon/50 text-neon text-[10px]">
+                    Enfoque Crítico-Pluralista
+                  </Badge>
+                </div>
               </div>
 
               {/* Input Form */}

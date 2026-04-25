@@ -43,15 +43,6 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="text-center mb-2">
-        <h2 className="text-lg md:text-xl font-bold mb-0.5">
-          Verifica cualquier información
-        </h2>
-        <p className="text-muted-foreground text-xs md:text-sm">
-          Ingresa una noticia, URL o afirmación y obtén un análisis crítico-pluralista
-        </p>
-      </div>
-
       <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0">
@@ -133,6 +124,14 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             )}
           </Button>
         </div>
+      </div>
+      <div className="text-center mt-2">
+        <h2 className="text-lg md:text-xl font-bold mb-0.5">
+          Verifica cualquier información
+        </h2>
+        <p className="text-muted-foreground text-xs md:text-sm">
+          Ingresa una noticia, URL o afirmación y obtén un análisis crítico-pluralista
+        </p>
       </div>
     </div>
   );
