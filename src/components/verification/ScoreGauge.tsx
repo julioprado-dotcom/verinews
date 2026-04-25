@@ -24,8 +24,8 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-32 h-32">
+    <div className="flex items-center gap-3 shrink-0">
+      <div className="relative w-20 h-20">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
           {/* Background circle */}
           <circle
@@ -34,7 +34,7 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
             r={radius}
             fill="none"
             stroke="currentColor"
-            strokeWidth="12"
+            strokeWidth="14"
             className="text-muted/30"
           />
           {/* Progress circle */}
@@ -44,7 +44,7 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
             r={radius}
             fill="none"
             stroke={getGaugeColor()}
-            strokeWidth="12"
+            strokeWidth="14"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
@@ -53,18 +53,18 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className="text-2xl font-bold"
+            className="text-xl font-bold"
             style={{ color: getGaugeColor() }}
           >
             {score}
           </span>
-          <span className="text-xs text-muted-foreground mt-1">de 100</span>
+          <span className="text-[9px] text-muted-foreground">de 100</span>
         </div>
       </div>
 
-      <div className="text-center">
+      <div>
         <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
             veracityLevel === 'verified'
               ? 'bg-neon/15 text-neon'
               : veracityLevel === 'dubious'
@@ -72,12 +72,9 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
               : 'bg-alert/15 text-alert'
           }`}
         >
-          <span className="w-2 h-2 rounded-full bg-current" />
+          <span className="w-1.5 h-1.5 rounded-full bg-current" />
           {config.label}
         </span>
-        <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
-          {config.description}
-        </p>
       </div>
     </div>
   );

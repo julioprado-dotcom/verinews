@@ -511,6 +511,22 @@ export function Layers({ className, size = 24 }: IconProps) {
   );
 }
 
+// ─── Filter icon ──────────────────────────────────────────────
+
+export function Filter({ className, size = 24 }: IconProps) {
+  return (
+    <svg
+      {...iconDefaults}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      className={className}
+    >
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
+}
+
 // ─── toast.tsx ──────────────────────────────────────────────
 
 export function X({ className, size = 24 }: IconProps) {

@@ -43,46 +43,46 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="text-center mb-4">
-        <h2 className="text-xl md:text-2xl font-bold mb-1">
+      <div className="text-center mb-2">
+        <h2 className="text-lg md:text-xl font-bold mb-0.5">
           Verifica cualquier información
         </h2>
-        <p className="text-muted-foreground text-sm md:text-base">
-          Ingresa una noticia, URL o afirmación y obtén un análisis crítico-pluralista con fuentes diversas
+        <p className="text-muted-foreground text-xs md:text-sm">
+          Ingresa una noticia, URL o afirmación y obtén un análisis crítico-pluralista
         </p>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0">
             <TabsTrigger
               value="text"
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 gap-2 text-sm"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-3.5 h-3.5" />
               Texto completo
             </TabsTrigger>
             <TabsTrigger
               value="url"
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 gap-2 text-sm"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
             >
-              <Link className="w-4 h-4" />
+              <Link className="w-3.5 h-3.5" />
               URL
             </TabsTrigger>
             <TabsTrigger
               value="claim"
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 gap-2 text-sm"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5" />
               Afirmación
             </TabsTrigger>
           </TabsList>
 
-          <div className="p-4 md:p-6">
+          <div className="p-3">
             <TabsContent value="text" className="mt-0">
               <Textarea
                 placeholder="Pega aquí el texto completo de la noticia que deseas verificar..."
-                className="min-h-[120px] resize-none text-sm md:text-base"
+                className="min-h-[100px] resize-none text-sm"
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
               />
@@ -92,12 +92,12 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
               <Input
                 type="url"
                 placeholder="https://ejemplo.com/noticia"
-                className="h-14 text-sm md:text-base"
+                className="h-11 text-sm"
                 value={urlContent}
                 onChange={(e) => setUrlContent(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 Extraeremos automáticamente el contenido de la URL para su análisis
               </p>
             </TabsContent>
@@ -105,7 +105,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="claim" className="mt-0">
               <Textarea
                 placeholder="Escribe la afirmación específica que deseas verificar (ej: 'Las sanciones económicas no afectan a la población civil')"
-                className="min-h-[80px] resize-none text-sm md:text-base"
+                className="min-h-[70px] resize-none text-sm"
                 value={claimContent}
                 onChange={(e) => setClaimContent(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -114,21 +114,21 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           </div>
         </Tabs>
 
-        <div className="px-4 md:px-6 pb-4 md:pb-6">
+        <div className="px-3 pb-3">
           <Button
             onClick={handleSubmit}
             disabled={isLoading || !getCurrentContent().trim()}
-            className="w-full h-10 text-sm font-semibold gap-2 bg-neon hover:bg-neon/90 text-deep"
+            className="w-full h-9 text-xs font-semibold gap-1.5 bg-neon hover:bg-neon/90 text-deep"
           >
             {isLoading ? (
               <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Verificando...
               </>
             ) : (
               <>
                 Verificar con enfoque Crítico-Pluralista
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </>
             )}
           </Button>

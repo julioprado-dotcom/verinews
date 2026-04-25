@@ -18,12 +18,12 @@ interface DimensionCardProps {
 }
 
 const DIMENSION_ICONS: Record<string, React.ReactNode> = {
-  sourceCredibility: <ShieldCheck className="w-5 h-5" />,
-  internalCoherence: <Puzzle className="w-5 h-5" />,
-  externalCorroboration: <Globe className="w-5 h-5" />,
-  sensationalism: <AlertTriangle className="w-5 h-5" />,
-  factualAccuracy: <CircleCheckBig className="w-5 h-5" />,
-  biasManipulation: <Brain className="w-5 h-5" />,
+  sourceCredibility: <ShieldCheck className="w-3.5 h-3.5" />,
+  internalCoherence: <Puzzle className="w-3.5 h-3.5" />,
+  externalCorroboration: <Globe className="w-3.5 h-3.5" />,
+  sensationalism: <AlertTriangle className="w-3.5 h-3.5" />,
+  factualAccuracy: <CircleCheckBig className="w-3.5 h-3.5" />,
+  biasManipulation: <Brain className="w-3.5 h-3.5" />,
 };
 
 function getScoreColor(score: number, inverse = false): string {
@@ -48,71 +48,70 @@ export function DimensionCard({ dimensionKey, dimension }: DimensionCardProps) {
   const effectiveScore = isInverse ? 100 - dimension.score : dimension.score;
 
   return (
-    <Card className="border-border/50 hover:border-neon/30 transition-colors py-2">
-      <CardHeader className="pb-1">
+    <Card className="border-border/50 hover:border-neon/30 transition-colors">
+      <CardHeader className="p-2 pb-1">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <span className="text-muted-foreground">
               {DIMENSION_ICONS[dimensionKey]}
             </span>
-            <CardTitle className="text-xs font-semibold">{dimension.title}</CardTitle>
+            <CardTitle className="text-[10px] font-semibold leading-tight">{dimension.title}</CardTitle>
           </div>
-          <span className={`text-lg font-bold ${getScoreTextColor(dimension.score, isInverse)}`}>
+          <span className={`text-sm font-bold ${getScoreTextColor(dimension.score, isInverse)}`}>
             {dimension.score}
           </span>
         </div>
       </CardHeader>
-      <CardContent className="space-y-1.5">
+      <CardContent className="px-2 pb-2 pt-0 space-y-1">
         {/* Progress bar */}
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="h-1 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreColor(dimension.score, isInverse)}`}
             style={{ width: `${dimension.score}%` }}
           />
         </div>
 
-        {/* Level badge */}
-        <Badge
-          variant="outline"
-          className={`text-xs ${
-            effectiveScore >= 70
-              ? 'border-neon text-neon'
+        {/* Level badge + description inline */}
+        <div className="flex items-center gap-1">
+          <Badge
+            variant="outline"
+            className={`text-[9px] h-4 px-1 ${
+              effectiveScore >= 70
+                ? 'border-neon text-neon'
+                : effectiveScore >= 40
+                ? 'border-trend text-trend'
+                : 'border-alert text-alert'
+            }`}
+          >
+            {isInverse
+              ? effectiveScore >= 70
+                ? 'Bajo riesgo'
+                : effectiveScore >= 40
+                ? 'Moderado'
+                : 'Riesgo alto'
+              : effectiveScore >= 70
+              ? 'Alto'
               : effectiveScore >= 40
-              ? 'border-trend text-trend'
-              : 'border-alert text-alert'
-          }`}
-        >
-          {isInverse
-            ? effectiveScore >= 70
-              ? 'Bajo riesgo'
-              : effectiveScore >= 40
-              ? 'Riesgo moderado'
-              : 'Riesgo alto'
-            : effectiveScore >= 70
-            ? 'Alto'
-            : effectiveScore >= 40
-            ? 'Medio'
-            : 'Bajo'}
-        </Badge>
+              ? 'Medio'
+              : 'Bajo'}
+          </Badge>
+        </div>
 
-        {/* Description */}
-        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+        {/* Description — single line */}
+        <p className="text-[9px] text-muted-foreground leading-snug line-clamp-2">
           {dimension.description}
         </p>
 
-        {/* Evidence */}
+        {/* Evidence — compact */}
         {dimension.evidence.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-foreground/70">Evidencia:</p>
-            <ul className="space-y-1">
-              {dimension.evidence.map((ev, idx) => (
-                <li key={idx} className="text-xs text-muted-foreground flex gap-1.5">
-                  <span className="text-neon mt-0.5 shrink-0">•</span>
-                  <span>{ev}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="space-y-0">
+            {dimension.evidence.slice(0, 2).map((ev, idx) => (
+              <li key={idx} className="text-[9px] text-muted-foreground flex gap-1 leading-snug">
+                <span className="text-neon shrink-0">•</span>
+                <span className="line-clamp-1">{ev}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </CardContent>
     </Card>

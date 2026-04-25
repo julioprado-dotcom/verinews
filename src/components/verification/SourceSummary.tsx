@@ -27,46 +27,46 @@ export function SourceSummary({ sources }: SourceSummaryProps) {
 
   return (
     <Card className="border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-neon" />
-          <CardTitle className="text-sm font-semibold">
-            Resumen de Fuentes ({total} encontradas)
+      <CardHeader className="p-2 pb-1">
+        <div className="flex items-center gap-1.5">
+          <BarChart3 className="w-3.5 h-3.5 text-neon" />
+          <CardTitle className="text-[11px] font-semibold">
+            Resumen ({total} fuentes)
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Category breakdown */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-foreground/70">Diversidad de perspectivas:</p>
+      <CardContent className="px-2 pb-2 pt-0 space-y-2">
+        {/* Category breakdown — compact */}
+        <div className="space-y-1">
+          <p className="text-[9px] font-medium text-foreground/70">Diversidad de perspectivas:</p>
           {Object.entries(categoryCounts)
             .sort(([, a], [, b]) => b - a)
             .map(([category, count]) => (
-              <div key={category} className="flex items-center gap-2">
-                <span className="text-sm">{SOURCE_CATEGORY_ICONS[category as keyof typeof SOURCE_CATEGORY_ICONS]}</span>
-                <span className="text-xs font-medium w-32">
+              <div key={category} className="flex items-center gap-1.5">
+                <span className="text-xs">{SOURCE_CATEGORY_ICONS[category as keyof typeof SOURCE_CATEGORY_ICONS]}</span>
+                <span className="text-[9px] font-medium w-24 truncate">
                   {SOURCE_CATEGORY_LABELS[category as keyof typeof SOURCE_CATEGORY_LABELS]}
                 </span>
-                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full bg-neon transition-all duration-500"
                     style={{ width: `${(count / total) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground w-6 text-right">{count}</span>
+                <span className="text-[9px] text-muted-foreground w-4 text-right">{count}</span>
               </div>
             ))}
         </div>
 
-        {/* Relation breakdown */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-foreground/70">Relación con la noticia:</p>
-          <div className="flex flex-wrap gap-2">
+        {/* Relation breakdown — inline badges */}
+        <div className="space-y-1">
+          <p className="text-[9px] font-medium text-foreground/70">Relación con la noticia:</p>
+          <div className="flex flex-wrap gap-1">
             {Object.entries(relationCounts).map(([relation, count]) => (
               <Badge
                 key={relation}
                 variant="outline"
-                className={`text-xs ${
+                className={`text-[9px] h-4 px-1 ${
                   relation === 'confirma'
                     ? 'border-neon text-neon'
                     : relation === 'contradice'

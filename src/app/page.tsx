@@ -27,6 +27,8 @@ import {
   MapPin,
   Tag,
   Layers,
+  Filter,
+  X,
 } from '@/lib/icons';
 import type {
   InputType,
@@ -53,11 +55,9 @@ export default function Home() {
   const [activeSourceFilter, setActiveSourceFilter] = useState<string>('all');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isDark, setIsDark] = useState(true);
-  const [regionsOpen, setRegionsOpen] = useState(true);
-  const [classifiersOpen, setClassifiersOpen] = useState(true);
-  const [categoriesOpen, setCategoriesOpen] = useState(true);
   const [activeGeopoliticalFilter, setActiveGeopoliticalFilter] = useState<string>('all');
   const [activeOrientationFilter, setActiveOrientationFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Initialize dark mode
   useEffect(() => {
@@ -173,13 +173,10 @@ export default function Home() {
           buffer += decoder.decode(value, { stream: true });
 
           // Process all complete SSE events (delimited by blank lines \n\n)
-          // SSE format: "data: {...}\n\n" — we split by double newline to get events
           const eventParts = buffer.split('\n\n');
-          // Keep the last (potentially incomplete) part in the buffer
           buffer = eventParts.pop() || '';
 
           for (const eventPart of eventParts) {
-            // Extract all data lines from this event
             const dataLines: string[] = [];
             for (const line of eventPart.split('\n')) {
               const trimmed = line.trim();
@@ -190,7 +187,6 @@ export default function Home() {
 
             if (dataLines.length === 0) continue;
 
-            // Join multi-line data (SSE spec) — for us, always single line
             const jsonStr = dataLines.join('\n');
 
             try {
@@ -209,11 +205,9 @@ export default function Home() {
                 throw new Error(event.message || 'Error en la verificación');
               }
             } catch (parseError) {
-              // Re-throw intentional errors (from 'error' event type)
               if (parseError instanceof Error && !parseError.message.includes('Unexpected')) {
                 throw parseError;
               }
-              // Log malformed JSON and continue
               console.warn('SSE parse warning:', parseError, 'Data:', jsonStr.slice(0, 100));
             }
           }
@@ -252,6 +246,7 @@ export default function Home() {
     setStage('idle');
     setLogs([]);
     setDebugInfo(null);
+    setShowFilters(false);
   };
 
   const runDiagnostics = async () => {
@@ -269,15 +264,12 @@ export default function Home() {
     if (!result?.sourcesFound) return [];
     let sources = result.sourcesFound;
 
-    // Filter by source category
     if (activeSourceFilter !== 'all') {
       sources = sources.filter((s) => s.category === activeSourceFilter);
     }
-    // Filter by geopolitical perspective
     if (activeGeopoliticalFilter !== 'all') {
       sources = sources.filter((s) => s.geopoliticalPerspective === activeGeopoliticalFilter);
     }
-    // Filter by orientation
     if (activeOrientationFilter !== 'all') {
       sources = sources.filter((s) => s.orientation === activeOrientationFilter);
     }
@@ -285,38 +277,46 @@ export default function Home() {
     return sources;
   })();
 
+  const hasActiveFilters = activeSourceFilter !== 'all' || activeGeopoliticalFilter !== 'all' || activeOrientationFilter !== 'all';
+
+  const clearFilters = () => {
+    setActiveSourceFilter('all');
+    setActiveGeopoliticalFilter('all');
+    setActiveOrientationFilter('all');
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Top bar — tagline */}
-      <div className="bg-neon/10 border-b border-neon/20">
-        <div className="max-w-[1600px] mx-auto px-4 py-1 text-center">
-          <p className="text-xs text-neon font-medium tracking-wide">
+      <div className="bg-neon/10 border-b border-neon/20 shrink-0">
+        <div className="max-w-[1800px] mx-auto px-4 py-0.5 text-center">
+          <p className="text-[10px] text-neon font-medium tracking-wide">
             Visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas
           </p>
         </div>
       </div>
 
       {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-neon flex items-center justify-center">
-              <Shield className="w-5 h-5 text-deep" />
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm shrink-0 z-50">
+        <div className="max-w-[1800px] mx-auto px-4 py-1.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-neon flex items-center justify-center">
+              <Shield className="w-4 h-4 text-deep" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight">VeriNews</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-base font-bold leading-tight">VeriNews</h1>
+              <p className="text-[10px] text-muted-foreground">
                 Verificación Crítico-Pluralista
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Theme toggle — prominent */}
+            {/* Theme toggle */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-neon/50"
+              className="relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-neon/50"
               style={{
                 background: isDark
                   ? 'linear-gradient(135deg, #1e1b4b, #312e81)'
@@ -325,15 +325,15 @@ export default function Home() {
               aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
               <span
-                className="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
+                className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
                 style={{
-                  transform: isDark ? 'translateX(0)' : 'translateX(28px)',
+                  transform: isDark ? 'translateX(0)' : 'translateX(24px)',
                 }}
               >
                 {isDark ? (
-                  <Moon className="w-3.5 h-3.5 text-indigo-700" />
+                  <Moon className="w-3 h-3 text-indigo-700" />
                 ) : (
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  <Sun className="w-3 h-3 text-amber-500" />
                 )}
               </span>
             </button>
@@ -341,13 +341,13 @@ export default function Home() {
             <Button
               variant="ghost"
               size="sm"
-              className="gap-2 text-muted-foreground"
+              className="gap-1.5 text-muted-foreground h-7"
               onClick={() => setShowHistory(!showHistory)}
             >
-              <History className="w-4 h-4" />
-              <span className="hidden sm:inline">Historial</span>
+              <History className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline text-xs">Historial</span>
               {history.length > 0 && (
-                <Badge variant="secondary" className="text-xs px-1.5">
+                <Badge variant="secondary" className="text-[10px] px-1 h-4">
                   {history.length}
                 </Badge>
               )}
@@ -356,23 +356,23 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1">
-        <div className="max-w-[1600px] mx-auto px-4 py-3">
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-[1800px] mx-auto px-4 py-2 h-full">
           {/* Hero / Input Section */}
           {!result && stage === 'idle' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Hero text */}
-              <div className="text-center space-y-2 max-w-2xl mx-auto">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Badge variant="outline" className="border-neon/50 text-neon text-xs">
+              <div className="text-center space-y-1 max-w-2xl mx-auto">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Badge variant="outline" className="border-neon/50 text-neon text-[10px]">
                     Enfoque Crítico-Pluralista
                   </Badge>
                 </div>
-                <h1 className="text-2xl md:text-4xl font-bold tracking-tight">
+                <h1 className="text-xl md:text-3xl font-bold tracking-tight">
                   Desenmascara la
                   <span className="text-neon"> desinformación</span>
                 </h1>
-                <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   Verifica noticias con un análisis que no solo detecta datos falsos, sino que
                   visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas.
                 </p>
@@ -382,25 +382,25 @@ export default function Home() {
               <InputForm onSubmit={handleSubmit} isLoading={isLoading} />
 
               {/* Features */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-4xl mx-auto mt-4">
-                <div className="bg-card border border-border/50 rounded-lg p-3 text-center space-y-1">
-                  <Eye className="w-8 h-8 mx-auto text-neon" />
-                  <h3 className="font-semibold text-sm">6 Dimensiones de Análisis</h3>
-                  <p className="text-xs text-muted-foreground">
+              <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
+                <div className="bg-card border border-border/50 rounded-lg p-2.5 text-center space-y-0.5">
+                  <Eye className="w-6 h-6 mx-auto text-neon" />
+                  <h3 className="font-semibold text-xs">6 Dimensiones</h3>
+                  <p className="text-[10px] text-muted-foreground">
                     Credibilidad, coherencia, corroboración, sensacionalismo, veracidad y sesgo
                   </p>
                 </div>
-                <div className="bg-card border border-border/50 rounded-lg p-3 text-center space-y-1">
-                  <Scale className="w-7 h-7 mx-auto text-analysis" />
-                  <h3 className="font-semibold text-sm">Fuentes Diversas</h3>
-                  <p className="text-xs text-muted-foreground">
+                <div className="bg-card border border-border/50 rounded-lg p-2.5 text-center space-y-0.5">
+                  <Scale className="w-6 h-6 mx-auto text-analysis" />
+                  <h3 className="font-semibold text-xs">Fuentes Diversas</h3>
+                  <p className="text-[10px] text-muted-foreground">
                     Colectivo Occidental, Sur Global, independientes, académicos y resistencia
                   </p>
                 </div>
-                <div className="bg-card border border-border/50 rounded-lg p-3 text-center space-y-1">
-                  <FileText className="w-7 h-7 mx-auto text-trend" />
-                  <h3 className="font-semibold text-sm">Voces Silenciadas</h3>
-                  <p className="text-xs text-muted-foreground">
+                <div className="bg-card border border-border/50 rounded-lg p-2.5 text-center space-y-0.5">
+                  <FileText className="w-6 h-6 mx-auto text-trend" />
+                  <h3 className="font-semibold text-xs">Voces Silenciadas</h3>
+                  <p className="text-[10px] text-muted-foreground">
                     Detectamos qué perspectivas se omiten y qué contexto falta
                   </p>
                 </div>
@@ -409,11 +409,11 @@ export default function Home() {
               {/* History inline (when toggled) */}
               {showHistory && (
                 <div className="max-w-3xl mx-auto">
-                  <Separator className="my-6" />
-                  <div className="space-y-4">
+                  <Separator className="my-3" />
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <History className="w-5 h-5 text-neon" />
-                      <h2 className="text-lg font-semibold">Historial de Verificaciones</h2>
+                      <History className="w-4 h-4 text-neon" />
+                      <h2 className="text-sm font-semibold">Historial de Verificaciones</h2>
                     </div>
                     <HistoryList
                       items={history}
@@ -428,15 +428,14 @@ export default function Home() {
           {/* Live Log */}
           {isLoading && <LiveLog logs={logs} currentStage={stage} />}
 
-          {/* Error state — always show LiveLog with error entry + action buttons */}
+          {/* Error state */}
           {stage === 'error' && !isLoading && (
-            <div className="max-w-3xl mx-auto space-y-4">
-              {/* Always show the LiveLog console in error state */}
+            <div className="max-w-3xl mx-auto space-y-3">
               <LiveLog logs={logs} currentStage={stage} />
               
-              <div className="text-center space-y-4">
-                <h2 className="text-xl font-bold">Error en la verificación</h2>
-                <p className="text-muted-foreground">
+              <div className="text-center space-y-3">
+                <h2 className="text-lg font-bold">Error en la verificación</h2>
+                <p className="text-sm text-muted-foreground">
                   Revisa el registro arriba para ver dónde falló el análisis.
                 </p>
                 <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -449,9 +448,8 @@ export default function Home() {
                   </Button>
                 </div>
 
-                {/* Debug info panel */}
                 {debugInfo && (
-                  <div className="mt-4 text-left">
+                  <div className="mt-3 text-left">
                     <div className="bg-card border border-border rounded-xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
                         <span className="text-xs font-mono text-muted-foreground">Diagnóstico del servidor</span>
@@ -464,7 +462,7 @@ export default function Home() {
                           Copiar
                         </Button>
                       </div>
-                      <pre className="p-4 text-xs font-mono text-foreground/80 overflow-auto max-h-60 whitespace-pre-wrap">
+                      <pre className="p-3 text-xs font-mono text-foreground/80 overflow-auto max-h-40 whitespace-pre-wrap">
                         {debugInfo}
                       </pre>
                     </div>
@@ -474,335 +472,242 @@ export default function Home() {
             </div>
           )}
 
-          {/* Results */}
+          {/* Results — Dashboard layout */}
           {result && stage === 'complete' && (
-            <div className="space-y-3">
-              {/* Back button + Share */}
-              <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="h-full flex flex-col gap-2">
+              {/* Top row: Back + Share + Filter toggle */}
+              <div className="flex items-center justify-between gap-2 shrink-0">
                 <Button
                   onClick={handleReset}
                   variant="ghost"
                   size="sm"
-                  className="gap-2 text-muted-foreground"
+                  className="gap-1.5 text-muted-foreground h-7 text-xs"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-3.5 h-3.5" />
                   Nueva verificación
                 </Button>
-                <ShareResult result={result} />
-              </div>
-
-              {/* Score + Summary */}
-              <div className="bg-card border border-border rounded-xl p-4 md:p-5">
-                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-                  <ScoreGauge
-                    score={result.overallScore}
-                    veracityLevel={result.veracityLevel}
-                  />
-                  <div className="flex-1 text-center md:text-left space-y-2">
-                    <h2 className="text-lg md:text-xl font-bold">
-                      Resultado del Análisis
-                    </h2>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {result.summary}
-                    </p>
-                    {result.keyClaims.length > 0 && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-medium text-foreground/70">
-                          Afirmaciones clave verificadas:
-                        </p>
-                        {result.keyClaims.map((claim, idx) => (
-                          <p key={idx} className="text-xs text-muted-foreground flex gap-1.5">
-                            <span className="text-neon shrink-0">•</span>
-                            {claim}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 6 Dimensions Grid */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="w-5 h-5 text-neon" />
-                  <h2 className="text-lg font-semibold">Análisis por Dimensiones</h2>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-                  <DimensionCard
-                    dimensionKey="sourceCredibility"
-                    dimension={result.sourceCredibility}
-                  />
-                  <DimensionCard
-                    dimensionKey="internalCoherence"
-                    dimension={result.internalCoherence}
-                  />
-                  <DimensionCard
-                    dimensionKey="externalCorroboration"
-                    dimension={result.externalCorroboration}
-                  />
-                  <DimensionCard
-                    dimensionKey="sensationalism"
-                    dimension={result.sensationalism}
-                  />
-                  <DimensionCard
-                    dimensionKey="factualAccuracy"
-                    dimension={result.factualAccuracy}
-                  />
-                  <DimensionCard
-                    dimensionKey="biasManipulation"
-                    dimension={result.biasManipulation}
-                  />
-                </div>
-              </div>
-
-              {/* Silenced Voices */}
-              <SilencedVoices voices={result.silencedVoices} />
-
-              {/* Sources Section */}
-              <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-analysis" />
-                  <h2 className="text-lg font-semibold">Fuentes Encontradas</h2>
-                </div>
-
-                {/* Source Summary */}
-                <SourceSummary sources={result.sourcesFound} />
-
-                {/* Collapsible: Categorías de Fuente */}
-                <div className="border border-border/50 rounded-xl overflow-hidden">
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-4 py-3 bg-card hover:bg-muted/30 transition-colors"
-                    onClick={() => setCategoriesOpen(!categoriesOpen)}
+                  <Button
+                    variant={showFilters ? 'default' : 'outline'}
+                    size="sm"
+                    className={`gap-1.5 h-7 text-xs ${showFilters ? 'bg-neon text-deep hover:bg-neon/90' : ''}`}
+                    onClick={() => setShowFilters(!showFilters)}
                   >
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-neon" />
-                      <span className="font-medium text-sm">Categorías de Fuente</span>
-                      {activeSourceFilter !== 'all' && (
-                        <Badge variant="secondary" className="text-xs px-1.5">
-                          1 activo
-                        </Badge>
-                      )}
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-                        categoriesOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {categoriesOpen && (
-                    <div className="px-4 pb-3 pt-2 flex flex-wrap gap-2 border-t border-border/30">
-                      <Button
-                        variant={activeSourceFilter === 'all' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setActiveSourceFilter('all')}
-                        className={activeSourceFilter === 'all' ? 'bg-neon text-deep hover:bg-neon/90' : ''}
-                      >
-                        Todas ({result.sourcesFound.length})
-                      </Button>
-                      {(['colectivo_occidental', 'sur_global', 'independiente', 'academico', 'resistencia'] as SourceCategory[]).map(
-                        (cat) => {
-                          const count = result.sourcesFound.filter(
-                            (s) => s.category === cat
-                          ).length;
-                          if (count === 0) return null;
-                          return (
-                            <Button
-                              key={cat}
-                              variant={activeSourceFilter === cat ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setActiveSourceFilter(cat)}
-                              className={
-                                activeSourceFilter === cat
-                                  ? 'bg-neon text-deep hover:bg-neon/90'
-                                  : ''
-                              }
-                            >
-                              {SOURCE_CATEGORY_ICONS[cat]} {SOURCE_CATEGORY_LABELS[cat]} ({count})
-                            </Button>
-                          );
-                        }
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Collapsible: Perspectiva Geopolítica (Regiones) */}
-                <div className="border border-border/50 rounded-xl overflow-hidden">
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-4 py-3 bg-card hover:bg-muted/30 transition-colors"
-                    onClick={() => setRegionsOpen(!regionsOpen)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-analysis" />
-                      <span className="font-medium text-sm">Regiones / Perspectiva Geopolítica</span>
-                      {activeGeopoliticalFilter !== 'all' && (
-                        <Badge variant="secondary" className="text-xs px-1.5">
-                          1 activo
-                        </Badge>
-                      )}
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-                        regionsOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {regionsOpen && (
-                    <div className="px-4 pb-3 pt-2 flex flex-wrap gap-2 border-t border-border/30">
-                      <Button
-                        variant={activeGeopoliticalFilter === 'all' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setActiveGeopoliticalFilter('all')}
-                        className={activeGeopoliticalFilter === 'all' ? 'bg-analysis text-white hover:bg-analysis/90' : ''}
-                      >
-                        Todas
-                      </Button>
-                      {(['alineado_otan', 'alineado_usa', 'alineado_ue', 'no_alineado', 'critico_orden_global', 'multipolar'] as GeopoliticalPerspective[]).map(
-                        (persp) => {
-                          const count = result.sourcesFound.filter(
-                            (s) => s.geopoliticalPerspective === persp
-                          ).length;
-                          if (count === 0) return null;
-                          return (
-                            <Button
-                              key={persp}
-                              variant={activeGeopoliticalFilter === persp ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setActiveGeopoliticalFilter(persp)}
-                              className={
-                                activeGeopoliticalFilter === persp
-                                  ? 'bg-analysis text-white hover:bg-analysis/90'
-                                  : ''
-                              }
-                            >
-                              {GEOPOLITICAL_LABELS[persp]} ({count})
-                            </Button>
-                          );
-                        }
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Collapsible: Clasificadores (Orientación) */}
-                <div className="border border-border/50 rounded-xl overflow-hidden">
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-4 py-3 bg-card hover:bg-muted/30 transition-colors"
-                    onClick={() => setClassifiersOpen(!classifiersOpen)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Tag className="w-4 h-4 text-trend" />
-                      <span className="font-medium text-sm">Clasificadores / Orientación</span>
-                      {activeOrientationFilter !== 'all' && (
-                        <Badge variant="secondary" className="text-xs px-1.5">
-                          1 activo
-                        </Badge>
-                      )}
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-                        classifiersOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {classifiersOpen && (
-                    <div className="px-4 pb-3 pt-2 flex flex-wrap gap-2 border-t border-border/30">
-                      <Button
-                        variant={activeOrientationFilter === 'all' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setActiveOrientationFilter('all')}
-                        className={activeOrientationFilter === 'all' ? 'bg-trend text-white hover:bg-trend/90' : ''}
-                      >
-                        Todas
-                      </Button>
-                      {(['estatal', 'corporativo', 'comunitario', 'independiente', 'academico'] as SourceOrientation[]).map(
-                        (orient) => {
-                          const count = result.sourcesFound.filter(
-                            (s) => s.orientation === orient
-                          ).length;
-                          if (count === 0) return null;
-                          return (
-                            <Button
-                              key={orient}
-                              variant={activeOrientationFilter === orient ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setActiveOrientationFilter(orient)}
-                              className={
-                                activeOrientationFilter === orient
-                                  ? 'bg-trend text-white hover:bg-trend/90'
-                                  : ''
-                              }
-                            >
-                              {ORIENTATION_LABELS[orient]} ({count})
-                            </Button>
-                          );
-                        }
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Active filters summary */}
-                {(activeSourceFilter !== 'all' || activeGeopoliticalFilter !== 'all' || activeOrientationFilter !== 'all') && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Mostrando {filteredSources.length} de {result.sourcesFound.length} fuentes</span>
+                    <Filter className="w-3 h-3" />
+                    Filtros
+                    {hasActiveFilters && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-alert" />
+                    )}
+                  </Button>
+                  {hasActiveFilters && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 text-xs text-muted-foreground underline"
-                      onClick={() => {
-                        setActiveSourceFilter('all');
-                        setActiveGeopoliticalFilter('all');
-                        setActiveOrientationFilter('all');
-                      }}
+                      className="h-7 text-xs text-muted-foreground gap-1"
+                      onClick={clearFilters}
                     >
-                      Limpiar filtros
+                      <X className="w-3 h-3" />
+                      Limpiar
                     </Button>
-                  </div>
-                )}
+                  )}
+                  <ShareResult result={result} />
+                </div>
+              </div>
 
-                {/* Source cards grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {filteredSources.map((source, idx) => (
-                    <SourceCard key={idx} source={source} />
-                  ))}
+              {/* Filter bar — inline, compact, shown when toggled */}
+              {showFilters && (
+                <div className="bg-card border border-border rounded-lg p-2 shrink-0 space-y-1.5">
+                  {/* Categories */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">Categoría:</span>
+                    <Button
+                      variant={activeSourceFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActiveSourceFilter('all')}
+                      className={`h-6 text-[10px] px-2 ${activeSourceFilter === 'all' ? 'bg-neon text-deep hover:bg-neon/90' : ''}`}
+                    >
+                      Todas ({result.sourcesFound.length})
+                    </Button>
+                    {(['colectivo_occidental', 'sur_global', 'independiente', 'academico', 'resistencia'] as SourceCategory[]).map(
+                      (cat) => {
+                        const count = result.sourcesFound.filter((s) => s.category === cat).length;
+                        if (count === 0) return null;
+                        return (
+                          <Button
+                            key={cat}
+                            variant={activeSourceFilter === cat ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setActiveSourceFilter(cat)}
+                            className={`h-6 text-[10px] px-2 ${activeSourceFilter === cat ? 'bg-neon text-deep hover:bg-neon/90' : ''}`}
+                          >
+                            {SOURCE_CATEGORY_ICONS[cat]} {SOURCE_CATEGORY_LABELS[cat]} ({count})
+                          </Button>
+                        );
+                      }
+                    )}
+                  </div>
+                  {/* Geopolitical */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">Región:</span>
+                    <Button
+                      variant={activeGeopoliticalFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActiveGeopoliticalFilter('all')}
+                      className={`h-6 text-[10px] px-2 ${activeGeopoliticalFilter === 'all' ? 'bg-analysis text-white hover:bg-analysis/90' : ''}`}
+                    >
+                      Todas
+                    </Button>
+                    {(['alineado_otan', 'alineado_usa', 'alineado_ue', 'no_alineado', 'critico_orden_global', 'multipolar'] as GeopoliticalPerspective[]).map(
+                      (persp) => {
+                        const count = result.sourcesFound.filter((s) => s.geopoliticalPerspective === persp).length;
+                        if (count === 0) return null;
+                        return (
+                          <Button
+                            key={persp}
+                            variant={activeGeopoliticalFilter === persp ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setActiveGeopoliticalFilter(persp)}
+                            className={`h-6 text-[10px] px-2 ${activeGeopoliticalFilter === persp ? 'bg-analysis text-white hover:bg-analysis/90' : ''}`}
+                          >
+                            {GEOPOLITICAL_LABELS[persp]} ({count})
+                          </Button>
+                        );
+                      }
+                    )}
+                  </div>
+                  {/* Orientation */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">Orientación:</span>
+                    <Button
+                      variant={activeOrientationFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setActiveOrientationFilter('all')}
+                      className={`h-6 text-[10px] px-2 ${activeOrientationFilter === 'all' ? 'bg-trend text-white hover:bg-trend/90' : ''}`}
+                    >
+                      Todas
+                    </Button>
+                    {(['estatal', 'corporativo', 'comunitario', 'independiente', 'academico'] as SourceOrientation[]).map(
+                      (orient) => {
+                        const count = result.sourcesFound.filter((s) => s.orientation === orient).length;
+                        if (count === 0) return null;
+                        return (
+                          <Button
+                            key={orient}
+                            variant={activeOrientationFilter === orient ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setActiveOrientationFilter(orient)}
+                            className={`h-6 text-[10px] px-2 ${activeOrientationFilter === orient ? 'bg-trend text-white hover:bg-trend/90' : ''}`}
+                          >
+                            {ORIENTATION_LABELS[orient]} ({count})
+                          </Button>
+                        );
+                      }
+                    )}
+                  </div>
+                  {hasActiveFilters && (
+                    <div className="text-[10px] text-muted-foreground">
+                      Mostrando {filteredSources.length} de {result.sourcesFound.length} fuentes
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Main dashboard area — 2 columns */}
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-2 min-h-0 overflow-hidden">
+                {/* Left column */}
+                <div className="flex flex-col gap-2 min-h-0 overflow-y-auto pr-1">
+                  {/* Score + Summary row */}
+                  <div className="bg-card border border-border rounded-lg p-3 flex items-center gap-4 shrink-0">
+                    <ScoreGauge
+                      score={result.overallScore}
+                      veracityLevel={result.veracityLevel}
+                    />
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <h2 className="text-base font-bold">
+                        Resultado del Análisis
+                      </h2>
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                        {result.summary}
+                      </p>
+                      {result.keyClaims.length > 0 && (
+                        <div className="space-y-0.5">
+                          <p className="text-[10px] font-medium text-foreground/70">
+                            Afirmaciones clave:
+                          </p>
+                          {result.keyClaims.slice(0, 3).map((claim, idx) => (
+                            <p key={idx} className="text-[10px] text-muted-foreground flex gap-1">
+                              <span className="text-neon shrink-0">•</span>
+                              <span className="line-clamp-1">{claim}</span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 6 Dimensions — 3x2 grid */}
+                  <div className="shrink-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Eye className="w-3.5 h-3.5 text-neon" />
+                      <h2 className="text-sm font-semibold">Dimensiones</h2>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <DimensionCard dimensionKey="sourceCredibility" dimension={result.sourceCredibility} />
+                      <DimensionCard dimensionKey="internalCoherence" dimension={result.internalCoherence} />
+                      <DimensionCard dimensionKey="externalCorroboration" dimension={result.externalCorroboration} />
+                      <DimensionCard dimensionKey="sensationalism" dimension={result.sensationalism} />
+                      <DimensionCard dimensionKey="factualAccuracy" dimension={result.factualAccuracy} />
+                      <DimensionCard dimensionKey="biasManipulation" dimension={result.biasManipulation} />
+                    </div>
+                  </div>
+
+                  {/* Sources */}
+                  <div className="flex-1 min-h-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-analysis" />
+                        <h2 className="text-sm font-semibold">Fuentes</h2>
+                        <span className="text-[10px] text-muted-foreground">({filteredSources.length})</span>
+                      </div>
+                    </div>
+                    <div className="overflow-y-auto max-h-[240px] pr-1">
+                      <div className="grid grid-cols-2 xl:grid-cols-3 gap-1.5">
+                        {filteredSources.map((source, idx) => (
+                          <SourceCard key={idx} source={source} />
+                        ))}
+                      </div>
+                      {filteredSources.length === 0 && (
+                        <p className="text-center text-xs text-muted-foreground py-4">
+                          No se encontraron fuentes con los filtros seleccionados
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                {filteredSources.length === 0 && (
-                  <p className="text-center text-sm text-muted-foreground py-6">
-                    No se encontraron fuentes con los filtros seleccionados
-                  </p>
-                )}
+                {/* Right column — Silenced Voices + Source Summary */}
+                <div className="flex flex-col gap-2 min-h-0 overflow-y-auto">
+                  <SilencedVoices voices={result.silencedVoices} />
+                  <SourceSummary sources={result.sourcesFound} />
+                </div>
               </div>
             </div>
           )}
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card/50 mt-auto">
-        <div className="max-w-[1600px] mx-auto px-4 py-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-neon" />
-              <span className="text-xs text-muted-foreground font-medium">
-                VeriNews — Verificación Crítico-Pluralista
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground text-center max-w-lg">
-              Análisis desde 6 dimensiones con fuentes del Colectivo Occidental, Sur Global, independientes, académicos y de resistencia.
-              Detectamos lo que las narrativas hegemónicas omiten.
-            </p>
+      {/* Footer — minimal */}
+      <footer className="border-t border-border bg-card/50 shrink-0">
+        <div className="max-w-[1800px] mx-auto px-4 py-1.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            <Shield className="w-3 h-3 text-neon" />
+            <span className="text-[10px] text-muted-foreground font-medium">
+              VeriNews — Verificación Crítico-Pluralista
+            </span>
           </div>
-          <div className="mt-3 pt-3 border-t border-border/30 text-center">
-            <p className="text-[10px] text-muted-foreground/60">
-              VeriNews no reemplaza el juicio crítico — lo amplifica. Las verificaciones son orientativas y deben complementarse con consulta directa a las fuentes.
-            </p>
-          </div>
+          <p className="text-[9px] text-muted-foreground/60 max-w-md text-right">
+            Análisis desde 6 dimensiones con fuentes diversas. No reemplaza el juicio crítico — lo amplifica.
+          </p>
         </div>
       </footer>
     </div>
