@@ -139,10 +139,11 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           </Button>
         </div>
       </div>
-      <div className="text-center mt-2">
-        <h2 className="text-lg md:text-xl font-bold mb-0.5">
+      <div className="text-center mt-4 mb-4">
+        <h2 className="text-lg md:text-xl font-bold">
           Verifica cualquier información
         </h2>
+        <div className="h-2" />
         <p className="text-muted-foreground text-xs md:text-sm">
           Ingresa una noticia, URL o afirmación y obtén un análisis crítico-pluralista
         </p>
