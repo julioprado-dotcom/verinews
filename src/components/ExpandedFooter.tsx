@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useI18n } from '@/lib/i18n-context';
-import { Shield, X, Users, Globe, VolumeX, Mail, MessageCircle, Lightbulb, Heart, Coffee } from '@/lib/icons';
+import { Shield, X, Users, Globe, VolumeX, Mail, MessageCircle, Lightbulb, Coffee } from '@/lib/icons';
 
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   if (!open) return null;
@@ -36,85 +35,49 @@ export function ExpandedFooter() {
   return (
     <>
       <footer className="border-t border-border bg-card/80 shrink-0">
-        <div className="w-full px-4 py-3">
-          {/* Main footer content — 3 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-            {/* Column 1: Mission */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <img src="/favicon.png" alt="VeriNews" className="w-6 h-6 rounded" />
-                <span className="text-xs font-bold">{t.appName}</span>
-                <span className="text-[9px] text-muted-foreground">{t.appSubtitle}</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">
-                {t.footerMission}
-              </p>
-              <p className="text-[9px] text-muted-foreground/60 leading-relaxed">
-                {t.footerDisclaimer}
-              </p>
-            </div>
-
-            {/* Column 2: Links */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold text-foreground/70">{t.footerAbout}</p>
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  onClick={() => setAboutOpen(true)}
-                  className="text-[10px] text-neon hover:underline block"
-                >
-                  {t.footerAbout}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMethodologyOpen(true)}
-                  className="text-[10px] text-neon hover:underline block"
-                >
-                  {t.footerMethodology}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setContactOpen(true)}
-                  className="text-[10px] text-neon hover:underline block"
-                >
-                  {t.footerContact}
-                </button>
-              </div>
-            </div>
-
-            {/* Column 3: Community + Ko-fi */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold text-foreground/70">{t.footerCommunity}</p>
-              <div className="space-y-1">
-                <a
-                  href="https://ko-fi.com/verinews"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-[10px] text-trend hover:underline"
-                >
-                  <Coffee className="w-3 h-3" />
-                  {t.buyCoffee}
-                </a>
-                <a
-                  href="https://ko-fi.com/verinews"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-[10px] text-alert hover:underline"
-                >
-                  <Heart className="w-3 h-3" />
-                  {t.footerDonate}
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setContactOpen(true)}
-                  className="flex items-center gap-1.5 text-[10px] text-neon hover:underline"
-                >
-                  <Lightbulb className="w-3 h-3" />
-                  {t.contactSuggest}
-                </button>
-              </div>
-            </div>
+        <div className="w-full px-4 py-1 flex items-center justify-between gap-3">
+          {/* Left: Logo + tagline */}
+          <div className="flex items-center gap-2 shrink-0">
+            <img src="/favicon.png" alt="VeriNews" className="w-4 h-4 rounded" />
+            <span className="text-[10px] font-bold">{t.appName}</span>
           </div>
+          {/* Center: Links inline */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setAboutOpen(true)}
+              className="text-[10px] text-neon hover:underline"
+            >
+              {t.footerAbout}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMethodologyOpen(true)}
+              className="text-[10px] text-neon hover:underline"
+            >
+              {t.footerMethodology}
+            </button>
+            <button
+              type="button"
+              onClick={() => setContactOpen(true)}
+              className="text-[10px] text-neon hover:underline"
+            >
+              {t.footerContact}
+            </button>
+            <a
+              href="https://ko-fi.com/verinews"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] text-trend hover:underline"
+            >
+              <Coffee className="w-3 h-3" />
+              {t.buyCoffee}
+            </a>
+          </div>
+          {/* Right: Disclaimer */}
+          <p className="text-[9px] text-muted-foreground/60 shrink-0 hidden lg:block">
+            {t.footerDisclaimer}
+          </p>
         </div>
       </footer>
 
@@ -132,6 +95,9 @@ export function ExpandedFooter() {
 
       {/* About Modal */}
       <Modal open={aboutOpen} onClose={() => setAboutOpen(false)} title={t.aboutTitle}>
+        <p className="text-[11px] text-neon font-semibold leading-relaxed">{t.footerMission}</p>
+        <p className="text-[10px] text-muted-foreground leading-relaxed">{t.footerDisclaimer}</p>
+        <Separator />
         <p className="text-[11px] text-muted-foreground leading-relaxed">{t.aboutMission}</p>
         <Separator />
         <div className="space-y-2">
