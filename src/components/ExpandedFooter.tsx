@@ -99,7 +99,7 @@ export function ExpandedFooter() {
         href="https://ko-fi.com/verinews"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-4 right-4 z-[150] flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#FF5E5B] text-white text-[10px] font-semibold shadow-lg hover:bg-[#e54e4b] transition-colors"
+        className="fixed bottom-4 right-4 z-[150] flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#FF5E5B] text-white text-[10px] font-semibold shadow-lg hover:bg-[#e54e4b] transition-colors cursor-pointer"
         title={t.supportProject}
       >
         <Coffee className="w-3.5 h-3.5" />

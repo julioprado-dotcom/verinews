@@ -49,7 +49,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
           <h2 className="text-sm font-bold">{mode === 'login' ? t.authLogin : t.authRegister}</h2>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 cursor-pointer" onClick={onClose} title={t.authClose || 'Cerrar'}>
             <X className="w-3.5 h-3.5" />
           </Button>
         </div>
@@ -95,7 +95,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+              title={showPassword ? t.tooltipHidePassword : t.tooltipShowPassword}
             >
               {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             </button>
@@ -108,7 +109,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-neon text-deep hover:bg-neon/90 text-xs h-9 font-semibold"
+            className="w-full bg-neon text-deep hover:bg-neon/90 text-xs h-9 font-semibold cursor-pointer"
+            title={mode === 'login' ? t.authLogin : t.authRegister}
           >
             {loading ? '...' : (mode === 'login' ? t.authLogin : t.authRegister)}
           </Button>
@@ -118,7 +120,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             <button
               type="button"
               onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
-              className="text-neon hover:underline"
+              className="text-neon hover:underline cursor-pointer"
+              title={mode === 'login' ? t.tooltipSwitchToRegister : t.tooltipSwitchToLogin}
             >
               {mode === 'login' ? t.authRegister : t.authLogin}
             </button>

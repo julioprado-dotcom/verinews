@@ -180,6 +180,16 @@ export type TranslationKeys = {
   retry: string;
   diagnostics: string;
   noSources: string;
+  // Tooltips
+  tooltipShowPassword: string;
+  tooltipHidePassword: string;
+  tooltipSwitchToRegister: string;
+  tooltipSwitchToLogin: string;
+  tooltipTabText: string;
+  tooltipTabUrl: string;
+  tooltipTabClaim: string;
+  tooltipVerify: string;
+  authClose: string;
 };
 
 const es: TranslationKeys = {
@@ -321,6 +331,15 @@ const es: TranslationKeys = {
   retry: 'Volver a intentar',
   diagnostics: 'Diagnóstico del servidor',
   noSources: 'No se encontraron fuentes con los filtros seleccionados',
+  tooltipShowPassword: 'Mostrar contraseña',
+  tooltipHidePassword: 'Ocultar contraseña',
+  tooltipSwitchToRegister: 'Crear una cuenta nueva',
+  tooltipSwitchToLogin: 'Iniciar sesión con tu cuenta',
+  tooltipTabText: 'Pega el texto completo de una noticia',
+  tooltipTabUrl: 'Ingresa la URL de una noticia',
+  tooltipTabClaim: 'Escribe una afirmación específica a verificar',
+  tooltipVerify: 'Iniciar verificación crítico-pluralista',
+  authClose: 'Cerrar',
 };
 
 const en: TranslationKeys = {
@@ -462,6 +481,15 @@ const en: TranslationKeys = {
   retry: 'Try again',
   diagnostics: 'Server diagnostics',
   noSources: 'No sources found with the selected filters',
+  tooltipShowPassword: 'Show password',
+  tooltipHidePassword: 'Hide password',
+  tooltipSwitchToRegister: 'Create a new account',
+  tooltipSwitchToLogin: 'Log in to your account',
+  tooltipTabText: 'Paste the full text of a news article',
+  tooltipTabUrl: 'Enter the URL of a news article',
+  tooltipTabClaim: 'Write a specific claim to verify',
+  tooltipVerify: 'Start critical-pluralist verification',
+  authClose: 'Close',
 };
 
 const pt: TranslationKeys = {
@@ -603,6 +631,15 @@ const pt: TranslationKeys = {
   retry: 'Tentar novamente',
   diagnostics: 'Diagnóstico do servidor',
   noSources: 'Nenhuma fonte encontrada com os filtros selecionados',
+  tooltipShowPassword: 'Mostrar senha',
+  tooltipHidePassword: 'Ocultar senha',
+  tooltipSwitchToRegister: 'Criar uma nova conta',
+  tooltipSwitchToLogin: 'Entrar na sua conta',
+  tooltipTabText: 'Cole o texto completo de uma notícia',
+  tooltipTabUrl: 'Insira a URL de uma notícia',
+  tooltipTabClaim: 'Escreva uma afirmação específica para verificar',
+  tooltipVerify: 'Iniciar verificação crítico-pluralista',
+  authClose: 'Fechar',
 };
 
 const fr: TranslationKeys = {
@@ -744,6 +781,15 @@ const fr: TranslationKeys = {
   retry: 'Réessayer',
   diagnostics: 'Diagnostics du serveur',
   noSources: 'Aucune source trouvée avec les filtres sélectionnés',
+  tooltipShowPassword: 'Afficher le mot de passe',
+  tooltipHidePassword: 'Masquer le mot de passe',
+  tooltipSwitchToRegister: 'Créer un nouveau compte',
+  tooltipSwitchToLogin: 'Se connecter à votre compte',
+  tooltipTabText: 'Collez le texte complet d\'un article',
+  tooltipTabUrl: 'Entrez l\'URL d\'un article',
+  tooltipTabClaim: 'Écrivez une affirmation spécifique à vérifier',
+  tooltipVerify: 'Démarrer la vérification critique-pluraliste',
+  authClose: 'Fermer',
 };
 
 const ar: TranslationKeys = {
@@ -885,6 +931,15 @@ const ar: TranslationKeys = {
   retry: 'حاول مجدداً',
   diagnostics: 'تشخيص الخادم',
   noSources: 'لم يتم العثور على مصادر بالفلاتر المحددة',
+  tooltipShowPassword: 'إظهار كلمة المرور',
+  tooltipHidePassword: 'إخفاء كلمة المرور',
+  tooltipSwitchToRegister: 'إنشاء حساب جديد',
+  tooltipSwitchToLogin: 'تسجيل الدخول إلى حسابك',
+  tooltipTabText: 'الصق النص الكامل للخبر',
+  tooltipTabUrl: 'أدخل رابط الخبر',
+  tooltipTabClaim: 'اكتب ادعاءً محدداً للتحقق منه',
+  tooltipVerify: 'بدء التحقق النقدي-التعددي',
+  authClose: 'إغلاق',
 };
 
 const zh: TranslationKeys = {
@@ -1026,6 +1081,15 @@ const zh: TranslationKeys = {
   retry: '重试',
   diagnostics: '服务器诊断',
   noSources: '未找到符合所选筛选条件的来源',
+  tooltipShowPassword: '显示密码',
+  tooltipHidePassword: '隐藏密码',
+  tooltipSwitchToRegister: '创建新账户',
+  tooltipSwitchToLogin: '登录您的账户',
+  tooltipTabText: '粘贴新闻全文',
+  tooltipTabUrl: '输入新闻链接',
+  tooltipTabClaim: '输入要验证的具体说法',
+  tooltipVerify: '开始批判-多元验证',
+  authClose: '关闭',
 };
 
 export const translations: Record<Locale, TranslationKeys> = { es, en, pt, fr, ar, zh };

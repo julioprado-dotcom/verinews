@@ -549,7 +549,7 @@ export default function Home() {
                   onClick={handleReset}
                   variant="ghost"
                   size="sm"
-                  className="gap-1.5 text-muted-foreground h-7 text-xs"
+                  className="gap-1.5 text-muted-foreground h-7 text-xs cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   {t.newVerification}

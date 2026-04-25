@@ -64,21 +64,24 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0 relative z-10">
             <TabsTrigger
               value="text"
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs cursor-pointer"
+              title={t.tooltipTabText}
             >
               <FileText className="w-3.5 h-3.5" />
               {t.tabFullText}
             </TabsTrigger>
             <TabsTrigger
               value="url"
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs cursor-pointer"
+              title={t.tooltipTabUrl}
             >
               <Link className="w-3.5 h-3.5" />
               {t.tabUrl}
             </TabsTrigger>
             <TabsTrigger
               value="claim"
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
+              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs cursor-pointer"
+              title={t.tooltipTabClaim}
             >
               <Search className="w-3.5 h-3.5" />
               {t.tabClaim}
@@ -125,7 +128,8 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           <Button
             onClick={handleSubmit}
             disabled={isLoading || !getCurrentContent().trim()}
-            className="w-full h-11 text-xs font-semibold gap-1.5 bg-neon hover:bg-neon/90 text-deep"
+            className="w-full h-11 text-xs font-semibold gap-1.5 bg-neon hover:bg-neon/90 text-deep cursor-pointer"
+            title={t.tooltipVerify}
           >
             {isLoading ? (
               <>
