@@ -44,7 +44,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-[1100px] mx-auto">
       <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden relative">
         {/* Watermark logo — only visible when input is empty */}
         {isInputEmpty && (
