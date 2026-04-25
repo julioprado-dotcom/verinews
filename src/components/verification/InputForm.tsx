@@ -43,8 +43,8 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">
+      <div className="text-center mb-4">
+        <h2 className="text-xl md:text-2xl font-bold mb-1">
           Verifica cualquier información
         </h2>
         <p className="text-muted-foreground text-sm md:text-base">
@@ -82,7 +82,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="text" className="mt-0">
               <Textarea
                 placeholder="Pega aquí el texto completo de la noticia que deseas verificar..."
-                className="min-h-[160px] resize-none text-sm md:text-base"
+                className="min-h-[120px] resize-none text-sm md:text-base"
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
               />
@@ -105,7 +105,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="claim" className="mt-0">
               <Textarea
                 placeholder="Escribe la afirmación específica que deseas verificar (ej: 'Las sanciones económicas no afectan a la población civil')"
-                className="min-h-[100px] resize-none text-sm md:text-base"
+                className="min-h-[80px] resize-none text-sm md:text-base"
                 value={claimContent}
                 onChange={(e) => setClaimContent(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -118,7 +118,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           <Button
             onClick={handleSubmit}
             disabled={isLoading || !getCurrentContent().trim()}
-            className="w-full h-12 text-base font-semibold gap-2 bg-neon hover:bg-neon/90 text-deep"
+            className="w-full h-10 text-sm font-semibold gap-2 bg-neon hover:bg-neon/90 text-deep"
           >
             {isLoading ? (
               <>

@@ -26,7 +26,7 @@ const RELATION_COLORS: Record<string, string> = {
 export function SourceCard({ source }: SourceCardProps) {
   return (
     <Card className="border-border/50 hover:border-neon/30 transition-colors overflow-hidden">
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-3 space-y-2">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -53,7 +53,7 @@ export function SourceCard({ source }: SourceCardProps) {
         </div>
 
         {/* Snippet */}
-        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
           {source.snippet}
         </p>
 

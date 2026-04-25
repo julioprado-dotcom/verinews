@@ -48,23 +48,23 @@ export function DimensionCard({ dimensionKey, dimension }: DimensionCardProps) {
   const effectiveScore = isInverse ? 100 - dimension.score : dimension.score;
 
   return (
-    <Card className="border-border/50 hover:border-neon/30 transition-colors">
-      <CardHeader className="pb-3">
+    <Card className="border-border/50 hover:border-neon/30 transition-colors py-2">
+      <CardHeader className="pb-1">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="text-muted-foreground">
               {DIMENSION_ICONS[dimensionKey]}
             </span>
-            <CardTitle className="text-sm font-semibold">{dimension.title}</CardTitle>
+            <CardTitle className="text-xs font-semibold">{dimension.title}</CardTitle>
           </div>
-          <span className={`text-2xl font-bold ${getScoreTextColor(dimension.score, isInverse)}`}>
+          <span className={`text-lg font-bold ${getScoreTextColor(dimension.score, isInverse)}`}>
             {dimension.score}
           </span>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-1.5">
         {/* Progress bar */}
-        <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreColor(dimension.score, isInverse)}`}
             style={{ width: `${dimension.score}%` }}
@@ -96,7 +96,7 @@ export function DimensionCard({ dimensionKey, dimension }: DimensionCardProps) {
         </Badge>
 
         {/* Description */}
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
           {dimension.description}
         </p>
 

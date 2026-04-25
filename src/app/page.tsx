@@ -289,7 +289,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Top bar — tagline */}
       <div className="bg-neon/10 border-b border-neon/20">
-        <div className="max-w-7xl mx-auto px-4 py-1.5 text-center">
+        <div className="max-w-[1600px] mx-auto px-4 py-1 text-center">
           <p className="text-xs text-neon font-medium tracking-wide">
             Visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas
           </p>
@@ -298,7 +298,7 @@ export default function Home() {
 
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-neon flex items-center justify-center">
               <Shield className="w-5 h-5 text-deep" />
@@ -357,18 +357,18 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
+        <div className="max-w-[1600px] mx-auto px-4 py-3">
           {/* Hero / Input Section */}
           {!result && stage === 'idle' && (
-            <div className="space-y-8">
+            <div className="space-y-4">
               {/* Hero text */}
-              <div className="text-center space-y-4 max-w-2xl mx-auto">
-                <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="text-center space-y-2 max-w-2xl mx-auto">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <Badge variant="outline" className="border-neon/50 text-neon text-xs">
                     Enfoque Crítico-Pluralista
                   </Badge>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+                <h1 className="text-2xl md:text-4xl font-bold tracking-tight">
                   Desenmascara la
                   <span className="text-neon"> desinformación</span>
                 </h1>
@@ -382,23 +382,23 @@ export default function Home() {
               <InputForm onSubmit={handleSubmit} isLoading={isLoading} />
 
               {/* Features */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
-                <div className="bg-card border border-border/50 rounded-xl p-5 text-center space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-4xl mx-auto mt-4">
+                <div className="bg-card border border-border/50 rounded-lg p-3 text-center space-y-1">
                   <Eye className="w-8 h-8 mx-auto text-neon" />
                   <h3 className="font-semibold text-sm">6 Dimensiones de Análisis</h3>
                   <p className="text-xs text-muted-foreground">
                     Credibilidad, coherencia, corroboración, sensacionalismo, veracidad y sesgo
                   </p>
                 </div>
-                <div className="bg-card border border-border/50 rounded-xl p-5 text-center space-y-2">
-                  <Scale className="w-8 h-8 mx-auto text-analysis" />
+                <div className="bg-card border border-border/50 rounded-lg p-3 text-center space-y-1">
+                  <Scale className="w-7 h-7 mx-auto text-analysis" />
                   <h3 className="font-semibold text-sm">Fuentes Diversas</h3>
                   <p className="text-xs text-muted-foreground">
                     Colectivo Occidental, Sur Global, independientes, académicos y resistencia
                   </p>
                 </div>
-                <div className="bg-card border border-border/50 rounded-xl p-5 text-center space-y-2">
-                  <FileText className="w-8 h-8 mx-auto text-trend" />
+                <div className="bg-card border border-border/50 rounded-lg p-3 text-center space-y-1">
+                  <FileText className="w-7 h-7 mx-auto text-trend" />
                   <h3 className="font-semibold text-sm">Voces Silenciadas</h3>
                   <p className="text-xs text-muted-foreground">
                     Detectamos qué perspectivas se omiten y qué contexto falta
@@ -476,7 +476,7 @@ export default function Home() {
 
           {/* Results */}
           {result && stage === 'complete' && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Back button + Share */}
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <Button
@@ -492,14 +492,14 @@ export default function Home() {
               </div>
 
               {/* Score + Summary */}
-              <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
-                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="bg-card border border-border rounded-xl p-4 md:p-5">
+                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
                   <ScoreGauge
                     score={result.overallScore}
                     veracityLevel={result.veracityLevel}
                   />
-                  <div className="flex-1 text-center md:text-left space-y-3">
-                    <h2 className="text-xl md:text-2xl font-bold">
+                  <div className="flex-1 text-center md:text-left space-y-2">
+                    <h2 className="text-lg md:text-xl font-bold">
                       Resultado del Análisis
                     </h2>
                     <p className="text-sm text-muted-foreground leading-relaxed">
@@ -524,11 +524,11 @@ export default function Home() {
 
               {/* 6 Dimensions Grid */}
               <div>
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-2">
                   <Eye className="w-5 h-5 text-neon" />
                   <h2 className="text-lg font-semibold">Análisis por Dimensiones</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                   <DimensionCard
                     dimensionKey="sourceCredibility"
                     dimension={result.sourceCredibility}
@@ -560,7 +560,7 @@ export default function Home() {
               <SilencedVoices voices={result.silencedVoices} />
 
               {/* Sources Section */}
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-analysis" />
                   <h2 className="text-lg font-semibold">Fuentes Encontradas</h2>
@@ -766,7 +766,7 @@ export default function Home() {
                 )}
 
                 {/* Source cards grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                   {filteredSources.map((source, idx) => (
                     <SourceCard key={idx} source={source} />
                   ))}
@@ -785,7 +785,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border bg-card/50 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-5">
+        <div className="max-w-[1600px] mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-neon" />

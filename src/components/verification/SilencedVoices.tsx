@@ -24,7 +24,7 @@ export function SilencedVoices({ voices }: SilencedVoicesProps) {
 
   return (
     <Card className="border-trend/30">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <VolumeX className="w-5 h-5 text-trend" />
           <CardTitle className="text-sm font-semibold">
@@ -32,24 +32,24 @@ export function SilencedVoices({ voices }: SilencedVoicesProps) {
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {voices.map((voice, idx) => (
           <div
             key={idx}
-            className="p-3 rounded-lg bg-trend/5 border border-trend/20"
+            className="p-2 rounded-lg bg-trend/5 border border-trend/20"
           >
             <div className="flex items-start gap-2">
-              <span className="text-trend font-bold text-sm mt-0.5">
+              <span className="text-trend font-bold text-xs mt-0.5">
                 {idx + 1}.
               </span>
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-trend">
+                <p className="text-xs font-semibold text-trend">
                   {voice.perspective}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   {voice.description}
                 </p>
-                <p className="text-xs text-trend/80 italic">
+                <p className="text-[10px] text-trend/80 italic">
                   Contexto: {voice.context}
                 </p>
               </div>

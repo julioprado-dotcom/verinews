@@ -24,8 +24,8 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative w-52 h-52">
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative w-32 h-32">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
           {/* Background circle */}
           <circle
@@ -53,7 +53,7 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className="text-4xl font-bold"
+            className="text-2xl font-bold"
             style={{ color: getGaugeColor() }}
           >
             {score}
@@ -64,7 +64,7 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
 
       <div className="text-center">
         <span
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
             veracityLevel === 'verified'
               ? 'bg-neon/15 text-neon'
               : veracityLevel === 'dubious'
@@ -72,10 +72,10 @@ export function ScoreGauge({ score, veracityLevel }: ScoreGaugeProps) {
               : 'bg-alert/15 text-alert'
           }`}
         >
-          <span className="w-2.5 h-2.5 rounded-full bg-current" />
+          <span className="w-2 h-2 rounded-full bg-current" />
           {config.label}
         </span>
-        <p className="text-xs text-muted-foreground mt-2 max-w-xs">
+        <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
           {config.description}
         </p>
       </div>
