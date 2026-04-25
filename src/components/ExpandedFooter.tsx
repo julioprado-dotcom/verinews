@@ -47,28 +47,32 @@ export function ExpandedFooter() {
             <button
               type="button"
               onClick={() => setAboutOpen(true)}
-              className="text-[10px] text-neon hover:underline"
+              className="text-[10px] text-neon hover:underline cursor-pointer"
+              title={t.aboutTitle}
             >
               {t.footerAbout}
             </button>
             <button
               type="button"
               onClick={() => setMethodologyOpen(true)}
-              className="text-[10px] text-neon hover:underline"
+              className="text-[10px] text-neon hover:underline cursor-pointer"
+              title={t.footerMethodology}
             >
               {t.footerMethodology}
             </button>
             <button
               type="button"
               onClick={() => setContactOpen(true)}
-              className="text-[10px] text-neon hover:underline"
+              className="text-[10px] text-neon hover:underline cursor-pointer"
+              title={t.contactTitle}
             >
               {t.footerContact}
             </button>
             <button
               type="button"
               onClick={() => setTermsOpen(true)}
-              className="text-[10px] text-muted-foreground hover:underline"
+              className="text-[10px] text-muted-foreground hover:underline cursor-pointer"
+              title={t.termsTitle}
             >
               {t.footerTerms}
             </button>
@@ -76,7 +80,8 @@ export function ExpandedFooter() {
               href="https://ko-fi.com/verinews"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] text-trend hover:underline"
+              className="flex items-center gap-1 text-[10px] text-trend hover:underline cursor-pointer"
+              title={t.supportProject}
             >
               <Coffee className="w-3 h-3" />
               {t.buyCoffee}

@@ -15,7 +15,7 @@ export function LanguageSelector() {
           key={loc}
           type="button"
           onClick={() => setLocale(loc)}
-          className={`px-1 py-0.5 rounded text-[10px] font-medium transition-colors ${
+          className={`px-1 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
             locale === loc
               ? 'text-neon bg-neon/10'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'

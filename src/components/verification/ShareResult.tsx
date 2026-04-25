@@ -165,7 +165,7 @@ export function ShareResult({ result }: ShareResultProps) {
         <div className="absolute top-full left-0 mt-2 z-50 bg-card border border-border rounded-xl shadow-xl p-2 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-200">
           <button
             onClick={handleCopy}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-left"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-left cursor-pointer"
           >
             {copied ? (
               <Check className="w-4 h-4 text-neon shrink-0" />
@@ -180,7 +180,7 @@ export function ShareResult({ result }: ShareResultProps) {
 
           <button
             onClick={handleTwitter}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-left"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-left cursor-pointer"
           >
             <Twitter className="w-4 h-4 text-sky-400 shrink-0" />
             <div>
@@ -191,7 +191,7 @@ export function ShareResult({ result }: ShareResultProps) {
 
           <button
             onClick={handleWhatsApp}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-left"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-left cursor-pointer"
           >
             <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
             <div>

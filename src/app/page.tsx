@@ -327,7 +327,10 @@ export default function Home() {
 
             {/* Usage counter */}
             {usage && (
-              <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted/30">
+              <div
+                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted/30 cursor-pointer"
+                title={usage.limit === -1 ? t.tierUnlimited : `${usage.remaining}/${usage.limit} ${usage.cycle === 'weekly' ? t.usageCycleWeekly : usage.cycle === 'monthly' ? t.usageCycleMonthly : t.usageCycleDaily}`}
+              >
                 {usage.tier === 'pro' ? (
                   <Building2 className="w-3 h-3 text-purple-400" />
                 ) : usage.tier === 'premium' ? (
@@ -353,7 +356,8 @@ export default function Home() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-neon/50"
+              className="relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-neon/50 cursor-pointer"
+              title={isDark ? t.lightMode : t.darkMode}
               style={{
                 background: isDark
                   ? 'linear-gradient(135deg, #1e1b4b, #312e81)'
@@ -378,8 +382,9 @@ export default function Home() {
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1.5 text-muted-foreground h-7"
+              className="gap-1.5 text-muted-foreground h-7 cursor-pointer"
               onClick={() => setShowHistory(!showHistory)}
+              title={t.history}
             >
               <History className="w-3.5 h-3.5" />
               <span className="hidden sm:inline text-xs">{t.history}</span>
@@ -397,7 +402,7 @@ export default function Home() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-1 text-muted-foreground h-7 text-[10px]"
+                  className="gap-1 text-muted-foreground h-7 text-[10px] cursor-pointer"
                   onClick={logout}
                   title={t.authLogout}
                 >
@@ -408,8 +413,9 @@ export default function Home() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1 text-neon h-7 text-[10px]"
+                className="gap-1 text-neon h-7 text-[10px] cursor-pointer"
                 onClick={() => setAuthModalOpen(true)}
+                title={t.authLogin}
               >
                 <User className="w-3 h-3" />
                 <span className="hidden sm:inline">{t.authLogin}</span>

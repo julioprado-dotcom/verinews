@@ -130,14 +130,20 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
           <p className="text-[10px] font-semibold text-foreground/70 text-center">{t.authTierCompare}</p>
           <div className="grid grid-cols-2 gap-2">
             {/* Row 1: Free + Registered */}
-            <div className="bg-muted/30 rounded-lg px-3 py-2 flex items-center gap-2">
+            <div
+              className="bg-muted/30 rounded-lg px-3 py-2 flex items-center gap-2"
+              title={`${t.tierFree}: 3/${t.tierDay} · ${t.tierPriceFree}`}
+            >
               <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold truncate">{t.tierFree}</p>
                 <p className="text-[9px] text-muted-foreground">3/{t.tierDay} · {t.tierPriceFree}</p>
               </div>
             </div>
-            <div className="bg-neon/10 rounded-lg px-3 py-2 flex items-center gap-2 border border-neon/20">
+            <div
+              className="bg-neon/10 rounded-lg px-3 py-2 flex items-center gap-2 border border-neon/20 cursor-pointer"
+              title={`${t.tierRegistered}: 50/${t.tierWeek} · ${t.tierPriceFree}`}
+            >
               <Zap className="w-4 h-4 shrink-0 text-neon" />
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold text-neon truncate">{t.tierRegistered}</p>
@@ -145,14 +151,20 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
               </div>
             </div>
             {/* Row 2: Premium + Pro */}
-            <div className="bg-trend/10 rounded-lg px-3 py-2 flex items-center gap-2 border border-trend/20">
+            <div
+              className="bg-trend/10 rounded-lg px-3 py-2 flex items-center gap-2 border border-trend/20 cursor-pointer"
+              title={`${t.tierPremium}: 500/${t.tierMonth} · $4.99`}
+            >
               <Crown className="w-4 h-4 shrink-0 text-trend" />
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold text-trend truncate">{t.tierPremium}</p>
                 <p className="text-[9px] text-muted-foreground">500/{t.tierMonth} · $4.99</p>
               </div>
             </div>
-            <div className="bg-purple-500/10 rounded-lg px-3 py-2 flex items-center gap-2 border border-purple-500/20">
+            <div
+              className="bg-purple-500/10 rounded-lg px-3 py-2 flex items-center gap-2 border border-purple-500/20 cursor-pointer"
+              title={`${t.tierPro}: ${t.tierUnlimited} · 3 ${t.tierSeats} · $14.99`}
+            >
               <Building2 className="w-4 h-4 shrink-0 text-purple-400" />
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold text-purple-400 truncate">{t.tierPro}</p>
