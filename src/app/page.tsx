@@ -289,7 +289,7 @@ export default function Home() {
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Top bar — tagline */}
       <div className="bg-neon/10 border-b border-neon/20 shrink-0">
-        <div className="max-w-[1800px] mx-auto px-4 py-0.5 text-center">
+        <div className="w-full px-4 py-0.5 text-center">
           <p className="text-[10px] text-neon font-medium tracking-wide">
             Visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas
           </p>
@@ -298,7 +298,7 @@ export default function Home() {
 
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm shrink-0 z-50">
-        <div className="max-w-[1800px] mx-auto px-4 py-1.5 flex items-center justify-between">
+        <div className="w-full px-4 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-neon flex items-center justify-center">
               <Shield className="w-4 h-4 text-deep" />
@@ -357,7 +357,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1800px] mx-auto px-4 py-2 h-full">
+        <div className="w-full px-3 py-1.5 h-full">
           {/* Hero / Input Section */}
           {!result && stage === 'idle' && (
             <div className="space-y-3">
@@ -612,83 +612,74 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Main dashboard area — 2 columns */}
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-2 min-h-0 overflow-hidden">
-                {/* Left column */}
-                <div className="flex flex-col gap-2 min-h-0 overflow-y-auto pr-1">
-                  {/* Score + Summary row */}
-                  <div className="bg-card border border-border rounded-lg p-3 flex items-center gap-4 shrink-0">
+              {/* Main dashboard area — full width, rows */}
+              <div className="flex-1 flex flex-col gap-1.5 min-h-0 overflow-hidden">
+                {/* Row 1: Score + 6 Dimensions (all in one row) */}
+                <div className="flex gap-1.5 shrink-0">
+                  {/* Score gauge — compact */}
+                  <div className="bg-card border border-border rounded-lg p-2 flex items-center gap-3 shrink-0 w-[200px]">
                     <ScoreGauge
                       score={result.overallScore}
                       veracityLevel={result.veracityLevel}
                     />
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      <h2 className="text-base font-bold">
-                        Resultado del Análisis
-                      </h2>
-                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                        {result.summary}
-                      </p>
-                      {result.keyClaims.length > 0 && (
-                        <div className="space-y-0.5">
-                          <p className="text-[10px] font-medium text-foreground/70">
-                            Afirmaciones clave:
-                          </p>
-                          {result.keyClaims.slice(0, 3).map((claim, idx) => (
-                            <p key={idx} className="text-[10px] text-muted-foreground flex gap-1">
-                              <span className="text-neon shrink-0">•</span>
-                              <span className="line-clamp-1">{claim}</span>
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                    </div>
                   </div>
-
-                  {/* 6 Dimensions — 3x2 grid */}
-                  <div className="shrink-0">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Eye className="w-3.5 h-3.5 text-neon" />
-                      <h2 className="text-sm font-semibold">Dimensiones</h2>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      <DimensionCard dimensionKey="sourceCredibility" dimension={result.sourceCredibility} />
-                      <DimensionCard dimensionKey="internalCoherence" dimension={result.internalCoherence} />
-                      <DimensionCard dimensionKey="externalCorroboration" dimension={result.externalCorroboration} />
-                      <DimensionCard dimensionKey="sensationalism" dimension={result.sensationalism} />
-                      <DimensionCard dimensionKey="factualAccuracy" dimension={result.factualAccuracy} />
-                      <DimensionCard dimensionKey="biasManipulation" dimension={result.biasManipulation} />
-                    </div>
-                  </div>
-
-                  {/* Sources */}
-                  <div className="flex-1 min-h-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-1.5">
-                        <BookOpen className="w-3.5 h-3.5 text-analysis" />
-                        <h2 className="text-sm font-semibold">Fuentes</h2>
-                        <span className="text-[10px] text-muted-foreground">({filteredSources.length})</span>
-                      </div>
-                    </div>
-                    <div className="overflow-y-auto max-h-[240px] pr-1">
-                      <div className="grid grid-cols-2 xl:grid-cols-3 gap-1.5">
-                        {filteredSources.map((source, idx) => (
-                          <SourceCard key={idx} source={source} />
-                        ))}
-                      </div>
-                      {filteredSources.length === 0 && (
-                        <p className="text-center text-xs text-muted-foreground py-4">
-                          No se encontraron fuentes con los filtros seleccionados
-                        </p>
-                      )}
-                    </div>
+                  {/* 6 Dimensions — 6 in a row */}
+                  <div className="flex-1 grid grid-cols-6 gap-1">
+                    <DimensionCard dimensionKey="sourceCredibility" dimension={result.sourceCredibility} compact />
+                    <DimensionCard dimensionKey="internalCoherence" dimension={result.internalCoherence} compact />
+                    <DimensionCard dimensionKey="externalCorroboration" dimension={result.externalCorroboration} compact />
+                    <DimensionCard dimensionKey="sensationalism" dimension={result.sensationalism} compact />
+                    <DimensionCard dimensionKey="factualAccuracy" dimension={result.factualAccuracy} compact />
+                    <DimensionCard dimensionKey="biasManipulation" dimension={result.biasManipulation} compact />
                   </div>
                 </div>
 
-                {/* Right column — Silenced Voices + Source Summary */}
-                <div className="flex flex-col gap-2 min-h-0 overflow-y-auto">
-                  <SilencedVoices voices={result.silencedVoices} />
-                  <SourceSummary sources={result.sourcesFound} />
+                {/* Row 2: Summary + Key Claims + Silenced Voices + Source Summary */}
+                <div className="flex gap-1.5 shrink-0">
+                  {/* Summary + Claims */}
+                  <div className="bg-card border border-border rounded-lg p-2 flex-1 min-w-0">
+                    <h2 className="text-xs font-bold mb-1">Resultado del Análisis</h2>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2 mb-1">
+                      {result.summary}
+                    </p>
+                    {result.keyClaims.length > 0 && (
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                        {result.keyClaims.slice(0, 3).map((claim, idx) => (
+                          <p key={idx} className="text-[9px] text-muted-foreground flex gap-1">
+                            <span className="text-neon shrink-0">•</span>
+                            <span className="line-clamp-1">{claim}</span>
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Silenced Voices — compact inline */}
+                  <SilencedVoices voices={result.silencedVoices} compact />
+                  {/* Source Summary */}
+                  <SourceSummary sources={result.sourcesFound} compact />
+                </div>
+
+                {/* Row 3: Sources — scrollable */}
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <div className="flex items-center justify-between gap-2 mb-0.5 shrink-0">
+                    <div className="flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5 text-analysis" />
+                      <h2 className="text-xs font-semibold">Fuentes</h2>
+                      <span className="text-[10px] text-muted-foreground">({filteredSources.length})</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+                    <div className="grid grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-1">
+                      {filteredSources.map((source, idx) => (
+                        <SourceCard key={idx} source={source} />
+                      ))}
+                    </div>
+                    {filteredSources.length === 0 && (
+                      <p className="text-center text-xs text-muted-foreground py-4">
+                        No se encontraron fuentes con los filtros seleccionados
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -698,7 +689,7 @@ export default function Home() {
 
       {/* Footer — minimal */}
       <footer className="border-t border-border bg-card/50 shrink-0">
-        <div className="max-w-[1800px] mx-auto px-4 py-1.5 flex items-center justify-between gap-3">
+        <div className="w-full px-4 py-1 flex items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
             <Shield className="w-3 h-3 text-neon" />
             <span className="text-[10px] text-muted-foreground font-medium">

@@ -11,9 +11,10 @@ import { BarChart3 } from '@/lib/icons';
 
 interface SourceSummaryProps {
   sources: SourceResult[];
+  compact?: boolean;
 }
 
-export function SourceSummary({ sources }: SourceSummaryProps) {
+export function SourceSummary({ sources, compact }: SourceSummaryProps) {
   // Count by category
   const categoryCounts: Record<string, number> = {};
   const relationCounts: Record<string, number> = {};
@@ -25,6 +26,72 @@ export function SourceSummary({ sources }: SourceSummaryProps) {
 
   const total = sources.length;
 
+  if (compact) {
+    return (
+      <Card className="border-border/50 w-[240px] shrink-0">
+        <CardHeader className="p-2 pb-1">
+          <div className="flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5 text-neon" />
+            <CardTitle className="text-[11px] font-semibold">
+              Resumen ({total})
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="px-2 pb-2 pt-0 space-y-1.5">
+          {/* Category breakdown — inline compact */}
+          <div className="space-y-0.5">
+            <p className="text-[9px] font-medium text-foreground/70">Perspectivas:</p>
+            {Object.entries(categoryCounts)
+              .sort(([, a], [, b]) => b - a)
+              .map(([category, count]) => (
+                <div key={category} className="flex items-center gap-1">
+                  <span className="text-[10px]">{SOURCE_CATEGORY_ICONS[category as keyof typeof SOURCE_CATEGORY_ICONS]}</span>
+                  <span className="text-[9px] font-medium truncate flex-1">
+                    {SOURCE_CATEGORY_LABELS[category as keyof typeof SOURCE_CATEGORY_LABELS]}
+                  </span>
+                  <div className="w-12 h-1 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-neon transition-all duration-500"
+                      style={{ width: `${(count / total) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-muted-foreground w-3 text-right">{count}</span>
+                </div>
+              ))}
+          </div>
+
+          {/* Relation breakdown — inline badges */}
+          <div className="flex flex-wrap gap-1">
+            {Object.entries(relationCounts).map(([relation, count]) => (
+              <Badge
+                key={relation}
+                variant="outline"
+                className={`text-[8px] h-3.5 px-1 ${
+                  relation === 'confirma'
+                    ? 'border-neon text-neon'
+                    : relation === 'contradice'
+                    ? 'border-alert text-alert'
+                    : relation === 'matiza'
+                    ? 'border-trend text-trend'
+                    : 'border-muted-foreground text-muted-foreground'
+                }`}
+              >
+                {relation === 'confirma'
+                  ? '✓ Confirman'
+                  : relation === 'contradice'
+                  ? '✗ Contradicen'
+                  : relation === 'matiza'
+                  ? '⚠ Matizan'
+                  : '— Sin relación'}: {count}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Full mode (original)
   return (
     <Card className="border-border/50">
       <CardHeader className="p-2 pb-1">

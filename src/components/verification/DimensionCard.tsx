@@ -15,6 +15,7 @@ import {
 interface DimensionCardProps {
   dimensionKey: string;
   dimension: DimensionDetail;
+  compact?: boolean;
 }
 
 const DIMENSION_ICONS: Record<string, React.ReactNode> = {
@@ -24,6 +25,16 @@ const DIMENSION_ICONS: Record<string, React.ReactNode> = {
   sensationalism: <AlertTriangle className="w-3.5 h-3.5" />,
   factualAccuracy: <CircleCheckBig className="w-3.5 h-3.5" />,
   biasManipulation: <Brain className="w-3.5 h-3.5" />,
+};
+
+// Shorter titles for compact mode
+const DIMENSION_SHORT_TITLES: Record<string, string> = {
+  sourceCredibility: 'Credibilidad',
+  internalCoherence: 'Coherencia',
+  externalCorroboration: 'Corroboración',
+  sensationalism: 'Sensacionalismo',
+  factualAccuracy: 'Veracidad',
+  biasManipulation: 'Sesgo',
 };
 
 function getScoreColor(score: number, inverse = false): string {
@@ -43,10 +54,62 @@ function getScoreTextColor(score: number, inverse = false): string {
 // For sensationalism and bias, higher score = worse (inverse)
 const INVERSE_DIMENSIONS = ['sensationalism', 'biasManipulation'];
 
-export function DimensionCard({ dimensionKey, dimension }: DimensionCardProps) {
+export function DimensionCard({ dimensionKey, dimension, compact }: DimensionCardProps) {
   const isInverse = INVERSE_DIMENSIONS.includes(dimensionKey);
   const effectiveScore = isInverse ? 100 - dimension.score : dimension.score;
 
+  if (compact) {
+    return (
+      <Card className="border-border/50 hover:border-neon/30 transition-colors h-full">
+        <CardContent className="p-1.5 space-y-1 flex flex-col items-center text-center">
+          {/* Icon */}
+          <span className="text-muted-foreground">
+            {DIMENSION_ICONS[dimensionKey]}
+          </span>
+          {/* Title — short */}
+          <p className="text-[9px] font-semibold leading-tight">
+            {DIMENSION_SHORT_TITLES[dimensionKey] || dimension.title}
+          </p>
+          {/* Score */}
+          <span className={`text-lg font-bold leading-none ${getScoreTextColor(dimension.score, isInverse)}`}>
+            {dimension.score}
+          </span>
+          {/* Progress bar — vertical feel */}
+          <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreColor(dimension.score, isInverse)}`}
+              style={{ width: `${dimension.score}%` }}
+            />
+          </div>
+          {/* Level badge */}
+          <Badge
+            variant="outline"
+            className={`text-[8px] h-3.5 px-1 ${
+              effectiveScore >= 70
+                ? 'border-neon text-neon'
+                : effectiveScore >= 40
+                ? 'border-trend text-trend'
+                : 'border-alert text-alert'
+            }`}
+          >
+            {isInverse
+              ? effectiveScore >= 70
+                ? 'Bajo riesgo'
+                : effectiveScore >= 40
+                ? 'Moderado'
+                : 'Riesgo alto'
+              : effectiveScore >= 70
+              ? 'Alto'
+              : effectiveScore >= 40
+              ? 'Medio'
+              : 'Bajo'}
+          </Badge>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Full mode (original)
   return (
     <Card className="border-border/50 hover:border-neon/30 transition-colors">
       <CardHeader className="p-2 pb-1">
