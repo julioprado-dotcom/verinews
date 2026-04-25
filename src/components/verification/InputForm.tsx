@@ -83,11 +83,11 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             </TabsTrigger>
           </TabsList>
 
-          <div className="p-3 relative z-10">
+          <div className="p-4 relative z-10">
             <TabsContent value="text" className="mt-0">
               <Textarea
                 placeholder="Pega aquí el texto completo de la noticia que deseas verificar..."
-                className="min-h-[100px] resize-none text-sm"
+                className="min-h-[115px] resize-none text-sm"
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
               />
@@ -97,7 +97,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
               <Input
                 type="url"
                 placeholder="https://ejemplo.com/noticia"
-                className="h-11 text-sm"
+                className="h-[50px] text-sm"
                 value={urlContent}
                 onChange={(e) => setUrlContent(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -110,7 +110,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="claim" className="mt-0">
               <Textarea
                 placeholder="Escribe la afirmación específica que deseas verificar (ej: 'Las sanciones económicas no afectan a la población civil')"
-                className="min-h-[70px] resize-none text-sm"
+                className="min-h-[80px] resize-none text-sm"
                 value={claimContent}
                 onChange={(e) => setClaimContent(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -119,11 +119,11 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           </div>
         </Tabs>
 
-        <div className="px-3 pb-3 relative z-10">
+        <div className="px-4 pb-4 relative z-10">
           <Button
             onClick={handleSubmit}
             disabled={isLoading || !getCurrentContent().trim()}
-            className="w-full h-9 text-xs font-semibold gap-1.5 bg-neon hover:bg-neon/90 text-deep"
+            className="w-full h-10 text-xs font-semibold gap-1.5 bg-neon hover:bg-neon/90 text-deep"
           >
             {isLoading ? (
               <>
