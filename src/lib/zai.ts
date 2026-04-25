@@ -50,19 +50,34 @@ export async function chatCompletion(
   const apiKey = getApiKey();
   const model = options?.model || getModel();
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-      temperature: options?.temperature ?? 0.3,
-      max_tokens: options?.max_tokens ?? 4096,
-    }),
-  });
+  // 120s timeout — mega-prompt needs time to generate large JSON response
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+        temperature: options?.temperature ?? 0.3,
+        max_tokens: options?.max_tokens ?? 4096,
+      }),
+      signal: controller.signal,
+    });
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('ZAI API error 524: Request timed out after 120s');
+    }
+    throw error;
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
