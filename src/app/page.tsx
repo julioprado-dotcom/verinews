@@ -370,8 +370,9 @@ export default function Home() {
                   <span className="text-neon"> desinformación</span>
                 </h1>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Verifica noticias con un análisis que no solo detecta datos falsos, sino que
-                  visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas.
+                  Verifica noticias con un análisis que no solo detecta datos falsos,<br />
+                  sino que visibiliza sesgos, omisiones y voces silenciadas<br />
+                  por las narrativas hegemónicas.
                 </p>
                 <div className="flex items-center justify-center gap-2 mt-1">
                   <Badge variant="outline" className="border-neon/50 text-neon text-[10px]">
