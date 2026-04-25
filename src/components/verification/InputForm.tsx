@@ -28,6 +28,8 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
     }
   };
 
+  const isInputEmpty = !getCurrentContent().trim();
+
   const handleSubmit = () => {
     const content = getCurrentContent();
     if (!content.trim()) return;
@@ -43,9 +45,21 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden relative">
+        {/* Watermark logo — only visible when input is empty */}
+        {isInputEmpty && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+            <img
+              src="/favicon.png"
+              alt=""
+              className="w-32 h-32 opacity-[0.04] select-none"
+              aria-hidden="true"
+            />
+          </div>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0">
+          <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0 relative z-10">
             <TabsTrigger
               value="text"
               className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
@@ -69,7 +83,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             </TabsTrigger>
           </TabsList>
 
-          <div className="p-3">
+          <div className="p-3 relative z-10">
             <TabsContent value="text" className="mt-0">
               <Textarea
                 placeholder="Pega aquí el texto completo de la noticia que deseas verificar..."
@@ -105,7 +119,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
           </div>
         </Tabs>
 
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-3 relative z-10">
           <Button
             onClick={handleSubmit}
             disabled={isLoading || !getCurrentContent().trim()}

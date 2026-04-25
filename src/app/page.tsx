@@ -300,9 +300,11 @@ export default function Home() {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm shrink-0 z-50">
         <div className="w-full px-4 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-neon flex items-center justify-center">
-              <Shield className="w-4 h-4 text-deep" />
-            </div>
+            <img
+              src="/favicon.png"
+              alt="VeriNews"
+              className="w-8 h-8 rounded-lg"
+            />
             <div>
               <h1 className="text-base font-bold leading-tight">VeriNews</h1>
               <p className="text-[10px] text-muted-foreground">
