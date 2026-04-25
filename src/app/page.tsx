@@ -33,6 +33,7 @@ import {
   LogOut,
   Zap,
   Crown,
+  Building2,
 } from '@/lib/icons';
 import type {
   InputType,
@@ -327,7 +328,9 @@ export default function Home() {
             {/* Usage counter */}
             {usage && (
               <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted/30">
-                {usage.tier === 'premium' ? (
+                {usage.tier === 'pro' ? (
+                  <Building2 className="w-3 h-3 text-purple-400" />
+                ) : usage.tier === 'premium' ? (
                   <Crown className="w-3 h-3 text-trend" />
                 ) : usage.tier === 'registered' ? (
                   <Zap className="w-3 h-3 text-neon" />
@@ -335,7 +338,13 @@ export default function Home() {
                   <Eye className="w-3 h-3 text-muted-foreground" />
                 )}
                 <span className="text-[9px] text-muted-foreground font-medium">
-                  {usage.limit === -1 ? t.tierUnlimited : `${usage.remaining}/${usage.limit}`}
+                  {usage.limit === -1
+                    ? t.tierUnlimited
+                    : (() => {
+                        const cycleLabel = usage.cycle === 'weekly' ? t.tierWeek : usage.cycle === 'monthly' ? t.tierMonth : t.tierDay;
+                        return `${usage.remaining}/${usage.limit}/${cycleLabel}`;
+                      })()
+                  }
                 </span>
               </div>
             )}

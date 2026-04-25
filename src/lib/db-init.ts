@@ -15,6 +15,8 @@ export async function initDatabase() {
         name TEXT,
         tier TEXT NOT NULL DEFAULT 'registered',
         stripeCustomerId TEXT,
+        institutionId TEXT,
+        seatNumber INTEGER DEFAULT 1,
         createdAt TEXT NOT NULL DEFAULT (datetime('now')),
         updatedAt TEXT
       )
@@ -49,6 +51,30 @@ export async function initDatabase() {
       await db.execute(`ALTER TABLE Verification ADD COLUMN userId TEXT`);
     } catch {
       // Column already exists — ignore
+    }
+
+    // Add institutionId column to User table if it doesn't exist
+    try {
+      await db.execute(`ALTER TABLE User ADD COLUMN institutionId TEXT`);
+    } catch {
+      // Column already exists — ignore
+    }
+
+    // Add seatNumber column to User table if it doesn't exist
+    try {
+      await db.execute(`ALTER TABLE User ADD COLUMN seatNumber INTEGER DEFAULT 1`);
+    } catch {
+      // Column already exists — ignore
+    }
+
+    // Add index for weekly/monthly usage queries
+    try {
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_dailyusage_user_date_range
+        ON DailyUsage(userId, date)
+      `);
+    } catch {
+      // Index already exists — ignore
     }
 
     console.log('✅ Database tables initialized');

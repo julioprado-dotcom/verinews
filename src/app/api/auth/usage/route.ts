@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyToken, TIER_LIMITS, type UserTier } from '@/lib/auth';
+import { verifyToken, TIER_LIMITS, TIER_CYCLES, getUsageCycleDates, type UserTier } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,20 +19,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const cycle = TIER_CYCLES[tier];
     const limit = TIER_LIMITS[tier];
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const { start: cycleStart, end: cycleEnd } = getUsageCycleDates(cycle);
 
     let used = 0;
 
     if (userId) {
-      // Registered/premium: count by userId
+      // Registered/premium/pro: count by userId within cycle date range
       const result = await db.execute({
-        sql: `SELECT COUNT(*) as count FROM DailyUsage WHERE userId = ? AND date = ?`,
-        args: [userId, today],
+        sql: `SELECT COUNT(*) as count FROM DailyUsage WHERE userId = ? AND date >= ? AND date <= ?`,
+        args: [userId, cycleStart, cycleEnd],
       });
       used = (result.rows[0]?.count as number) || 0;
     } else {
-      // Anonymous: count by IP
+      // Anonymous: always daily cycle, count by IP
+      const today = new Date().toISOString().split('T')[0];
       const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
         || request.headers.get('x-real-ip')
         || 'unknown';
@@ -51,6 +53,9 @@ export async function GET(request: NextRequest) {
       limit: limit === Infinity ? -1 : limit,
       remaining: remaining === Infinity ? -1 : remaining,
       tier,
+      cycle,
+      cycleStart,
+      cycleEnd,
     });
   } catch (error) {
     console.error('Usage check error:', error);

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { chatCompletion, delay } from '@/lib/zai';
 import { db } from '@/lib/db';
-import { verifyToken, TIER_LIMITS, type UserTier } from '@/lib/auth';
+import { verifyToken, TIER_LIMITS, TIER_CYCLES, getUsageCycleDates, type UserTier, type TierCycle } from '@/lib/auth';
 
 const encoder = new TextEncoder();
 import type {
@@ -142,7 +142,8 @@ function createErrorStream(errorMessage: string, detail?: string) {
 export async function POST(request: NextRequest) {
   try {
     // ─────────────────────────────────────────
-    // RATE LIMITING: Check daily usage per tier
+    // RATE LIMITING: Check usage per tier & cycle
+    // free=3/day, registered=50/week, premium=500/month, pro=unlimited
     // ─────────────────────────────────────────
     let tier: UserTier = 'free';
     let userId: string | null = null;
@@ -157,21 +158,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const cycle = TIER_CYCLES[tier];
     const limit = TIER_LIMITS[tier];
+    const { start: cycleStart, end: cycleEnd } = getUsageCycleDates(cycle);
 
-    // Count today's verifications
+    // Count verifications in the current cycle
     let used = 0;
     if (userId) {
       const countResult = await db.execute({
-        sql: 'SELECT COUNT(*) as count FROM DailyUsage WHERE userId = ? AND date = ?',
-        args: [userId, today],
+        sql: 'SELECT COUNT(*) as count FROM DailyUsage WHERE userId = ? AND date >= ? AND date <= ?',
+        args: [userId, cycleStart, cycleEnd],
       });
       used = (countResult.rows[0]?.count as number) || 0;
     } else {
       const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
         || request.headers.get('x-real-ip')
         || 'unknown';
+      // Anonymous always uses daily cycle
+      const today = new Date().toISOString().split('T')[0];
       const countResult = await db.execute({
         sql: 'SELECT COUNT(*) as count FROM DailyUsage WHERE ip = ? AND date = ? AND userId IS NULL',
         args: [ip, today],
@@ -180,10 +184,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (limit !== Infinity && used >= limit) {
-      const tierLabel = tier === 'free' ? 'Básico' : 'Registrado';
-      const nextTier = tier === 'free' ? 'registrado (20/día)' : 'Premium (ilimitado)';
+      const cycleLabel = cycle === 'daily' ? 'diario' : cycle === 'weekly' ? 'semanal' : 'mensual';
+      const nextTierInfo = tier === 'free'
+        ? 'registrado (50/semana)'
+        : tier === 'registered'
+        ? 'Premium (500/mes)'
+        : 'Pro Institucional (ilimitado)';
       return createErrorStream(
-        `Límite diario alcanzado (${used}/${limit}). Plan ${tierLabel}: ${limit} verificaciones por día. Regístrate o mejora a ${nextTier} para más consultas.`
+        `Límite ${cycleLabel} alcanzado (${used}/${limit}). Plan ${tier}: ${limit} verificaciones por ${cycleLabel}. Mejora a ${nextTierInfo} para más consultas.`
       );
     }
 
@@ -481,12 +489,13 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               undefined, 'done'
             ));
 
-            // Track daily usage for rate limiting
+            // Track usage for rate limiting
             try {
               const usageId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-usage`;
               const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
                 || request.headers.get('x-real-ip')
                 || 'unknown';
+              const today = new Date().toISOString().split('T')[0];
               await db.execute({
                 sql: `INSERT INTO DailyUsage (id, userId, ip, date, verificationId, createdAt)
                       VALUES (?, ?, ?, ?, ?, datetime('now'))`,

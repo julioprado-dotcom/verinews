@@ -15,6 +15,9 @@ export interface UsageInfo {
   limit: number; // -1 = unlimited
   remaining: number; // -1 = unlimited
   tier: UserTier;
+  cycle?: 'daily' | 'weekly' | 'monthly' | 'unlimited';
+  cycleStart?: string;
+  cycleEnd?: string;
 }
 
 interface AuthContextType {
@@ -79,6 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           limit: data.limit,
           remaining: data.remaining,
           tier: data.tier,
+          cycle: data.cycle,
+          cycleStart: data.cycleStart,
+          cycleEnd: data.cycleEnd,
         });
       }
     } catch {

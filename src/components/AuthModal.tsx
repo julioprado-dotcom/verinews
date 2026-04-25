@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n-context';
 import { Button } from '@/components/ui/button';
-import { X, Mail, Lock, User, Zap, Crown, Eye, EyeOff } from '@/lib/icons';
+import { X, Mail, Lock, User, Zap, Crown, Eye, EyeOff, Building2 } from '@/lib/icons';
 
 export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
@@ -45,7 +45,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-sm w-full">
+      <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h2 className="text-sm font-bold">{mode === 'login' ? t.authLogin : t.authRegister}</h2>
@@ -125,24 +125,33 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
           </p>
         </form>
 
-        {/* Tier comparison */}
+        {/* 4-tier comparison */}
         <div className="border-t border-border p-3 space-y-2">
           <p className="text-[10px] font-semibold text-foreground/70 text-center">{t.authTierCompare}</p>
-          <div className="grid grid-cols-3 gap-1.5">
-            <div className="bg-muted/30 rounded-lg p-2 text-center">
-              <Eye className="w-3.5 h-3.5 mx-auto text-muted-foreground mb-1" />
-              <p className="text-[9px] font-semibold">{t.tierFree}</p>
-              <p className="text-[9px] text-muted-foreground">3/{t.tierDay}</p>
+          <div className="grid grid-cols-4 gap-1">
+            <div className="bg-muted/30 rounded-lg p-1.5 text-center">
+              <Eye className="w-3 h-3 mx-auto text-muted-foreground mb-0.5" />
+              <p className="text-[8px] font-semibold">{t.tierFree}</p>
+              <p className="text-[8px] text-muted-foreground">3/{t.tierDay}</p>
+              <p className="text-[7px] text-muted-foreground/60">{t.tierPriceFree}</p>
             </div>
-            <div className="bg-neon/10 rounded-lg p-2 text-center border border-neon/20">
-              <Zap className="w-3.5 h-3.5 mx-auto text-neon mb-1" />
-              <p className="text-[9px] font-semibold text-neon">{t.tierRegistered}</p>
-              <p className="text-[9px] text-muted-foreground">20/{t.tierDay}</p>
+            <div className="bg-neon/10 rounded-lg p-1.5 text-center border border-neon/20">
+              <Zap className="w-3 h-3 mx-auto text-neon mb-0.5" />
+              <p className="text-[8px] font-semibold text-neon">{t.tierRegistered}</p>
+              <p className="text-[8px] text-muted-foreground">50/{t.tierWeek}</p>
+              <p className="text-[7px] text-muted-foreground/60">{t.tierPriceFree}</p>
             </div>
-            <div className="bg-trend/10 rounded-lg p-2 text-center border border-trend/20">
-              <Crown className="w-3.5 h-3.5 mx-auto text-trend mb-1" />
-              <p className="text-[9px] font-semibold text-trend">{t.tierPremium}</p>
-              <p className="text-[9px] text-muted-foreground">{t.tierUnlimited}</p>
+            <div className="bg-trend/10 rounded-lg p-1.5 text-center border border-trend/20">
+              <Crown className="w-3 h-3 mx-auto text-trend mb-0.5" />
+              <p className="text-[8px] font-semibold text-trend">{t.tierPremium}</p>
+              <p className="text-[8px] text-muted-foreground">500/{t.tierMonth}</p>
+              <p className="text-[7px] text-trend/70">$4.99/{t.tierMonth}</p>
+            </div>
+            <div className="bg-purple-500/10 rounded-lg p-1.5 text-center border border-purple-500/20">
+              <Building2 className="w-3 h-3 mx-auto text-purple-400 mb-0.5" />
+              <p className="text-[8px] font-semibold text-purple-400">{t.tierPro}</p>
+              <p className="text-[8px] text-muted-foreground">{t.tierUnlimited}</p>
+              <p className="text-[7px] text-purple-400/70">3 {t.tierSeats}</p>
             </div>
           </div>
         </div>
