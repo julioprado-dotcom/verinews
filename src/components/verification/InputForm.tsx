@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, FileText, Link, ChevronRight } from '@/lib/icons';
+import { useI18n } from '@/lib/i18n-context';
 import type { InputType } from '@/lib/types';
 
 interface InputFormProps {
@@ -14,6 +15,7 @@ interface InputFormProps {
 }
 
 export function InputForm({ onSubmit, isLoading }: InputFormProps) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<string>('text');
   const [textContent, setTextContent] = useState('');
   const [urlContent, setUrlContent] = useState('');
@@ -65,28 +67,28 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
               className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
             >
               <FileText className="w-3.5 h-3.5" />
-              Texto completo
+              {t.tabFullText}
             </TabsTrigger>
             <TabsTrigger
               value="url"
               className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
             >
               <Link className="w-3.5 h-3.5" />
-              URL
+              {t.tabUrl}
             </TabsTrigger>
             <TabsTrigger
               value="claim"
               className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-2 px-4 gap-1.5 text-xs"
             >
               <Search className="w-3.5 h-3.5" />
-              Afirmación
+              {t.tabClaim}
             </TabsTrigger>
           </TabsList>
 
           <div className="p-4 relative z-10">
             <TabsContent value="text" className="mt-0">
               <Textarea
-                placeholder="Pega aquí el texto completo de la noticia que deseas verificar..."
+                placeholder={t.textPlaceholder}
                 className="min-h-[155px] resize-none text-sm"
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
@@ -96,20 +98,20 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="url" className="mt-0">
               <Input
                 type="url"
-                placeholder="https://ejemplo.com/noticia"
+                placeholder={t.urlPlaceholder}
                 className="h-[56px] text-sm"
                 value={urlContent}
                 onChange={(e) => setUrlContent(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <p className="text-[10px] text-muted-foreground mt-1">
-                Extraeremos automáticamente el contenido de la URL para su análisis
+                {t.urlHint}
               </p>
             </TabsContent>
 
             <TabsContent value="claim" className="mt-0">
               <Textarea
-                placeholder="Escribe la afirmación específica que deseas verificar (ej: 'Las sanciones económicas no afectan a la población civil')"
+                placeholder={t.claimPlaceholder}
                 className="min-h-[110px] resize-none text-sm"
                 value={claimContent}
                 onChange={(e) => setClaimContent(e.target.value)}
@@ -128,11 +130,11 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Verificando...
+                {t.verifying}
               </>
             ) : (
               <>
-                Verificar con enfoque Crítico-Pluralista
+                {t.verifyButton}
                 <ChevronRight className="w-4 h-4" />
               </>
             )}
@@ -141,11 +143,11 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
       </div>
       <div className="text-center mt-4 mb-4">
         <h2 className="text-lg md:text-xl font-bold">
-          Verifica cualquier información
+          {t.verifyAnything}
         </h2>
         <div className="h-2" />
         <p className="text-muted-foreground text-xs md:text-sm">
-          Ingresa una noticia, URL o afirmación y obtén un análisis crítico-pluralista
+          {t.inputSubtitle}
         </p>
       </div>
     </div>

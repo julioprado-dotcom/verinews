@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { I18nProvider } from "@/lib/i18n-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,11 @@ export default function RootLayout({
                   } else {
                     document.documentElement.classList.add('dark');
                   }
+                  var locale = localStorage.getItem('verinews-locale');
+                  if (locale) {
+                    document.documentElement.lang = locale;
+                    if (locale === 'ar') document.documentElement.dir = 'rtl';
+                  }
                 } catch(e) {}
               })();
             `,
@@ -50,7 +56,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
+        <I18nProvider>
+          {children}
+        </I18nProvider>
         <Toaster />
       </body>
     </html>

@@ -10,11 +10,13 @@ import { SilencedVoices } from '@/components/verification/SilencedVoices';
 import { LiveLog } from '@/components/verification/LiveLog';
 import { ShareResult } from '@/components/verification/ShareResult';
 import { HistoryList } from '@/components/verification/HistoryList';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { ExpandedFooter } from '@/components/ExpandedFooter';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useI18n } from '@/lib/i18n-context';
 import {
-  Shield,
   History,
   ArrowLeft,
   BookOpen,
@@ -23,10 +25,6 @@ import {
   FileText,
   Moon,
   Sun,
-  ChevronDown,
-  MapPin,
-  Tag,
-  Layers,
   Filter,
   X,
 } from '@/lib/icons';
@@ -47,6 +45,7 @@ import {
 } from '@/lib/types';
 
 export default function Home() {
+  const { t } = useI18n();
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [stage, setStage] = useState<AnalysisStage>('idle');
   const [isLoading, setIsLoading] = useState(false);
@@ -107,7 +106,6 @@ export default function Home() {
       setDebugInfo(null);
       setStage('extracting');
 
-      // Add initial log entries so the LiveLog shows immediately
       const startTs = Date.now();
       const initialLogs: LogEntry[] = [
         {
@@ -139,7 +137,6 @@ export default function Home() {
           body: JSON.stringify({ inputType, content }),
         });
 
-        // Handle non-SSE error responses (module-level failures, edge runtime errors)
         if (!res.ok) {
           const contentType = res.headers.get('content-type') || '';
           let errorMessage = `Error del servidor (${res.status})`;
@@ -158,7 +155,6 @@ export default function Home() {
           throw new Error(errorMessage);
         }
 
-        // Read SSE stream
         const reader = res.body?.getReader();
         if (!reader) throw new Error('No se pudo leer la respuesta del servidor');
 
@@ -172,7 +168,6 @@ export default function Home() {
 
           buffer += decoder.decode(value, { stream: true });
 
-          // Process all complete SSE events (delimited by blank lines \n\n)
           const eventParts = buffer.split('\n\n');
           buffer = eventParts.pop() || '';
 
@@ -213,12 +208,10 @@ export default function Home() {
           }
         }
 
-        // If the stream ended but we never got a result, that's an error
         if (!resultReceived) {
           throw new Error('El servidor completó la respuesta sin enviar resultados');
         }
 
-        // Refresh history
         fetchHistory();
       } catch (error) {
         console.error('Verification failed:', error);
@@ -230,7 +223,7 @@ export default function Home() {
             timestamp: Date.now(),
             stage: 'error',
             message: error instanceof Error ? error.message : 'Error desconocido durante la verificación',
-            detail: 'El servidor no pudo procesar la solicitud. Puede ser un problema de configuración (variables de entorno) o de conexión.',
+            detail: 'El servidor no pudo procesar la solicitud.',
             status: 'error',
           },
         ]);
@@ -291,7 +284,7 @@ export default function Home() {
       <div className="bg-neon/10 border-b border-neon/20 shrink-0">
         <div className="w-full px-4 py-0.5 text-center">
           <p className="text-[10px] text-neon font-medium tracking-wide">
-            Visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas
+            {t.footerMission}
           </p>
         </div>
       </div>
@@ -306,14 +299,16 @@ export default function Home() {
               className="w-8 h-8 rounded-lg"
             />
             <div>
-              <h1 className="text-base font-bold leading-tight">VeriNews</h1>
+              <h1 className="text-base font-bold leading-tight">{t.appName}</h1>
               <p className="text-[10px] text-muted-foreground">
-                Verificación Crítico-Pluralista
+                {t.appSubtitle}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1">
+            <LanguageSelector />
+
             {/* Theme toggle */}
             <button
               type="button"
@@ -324,7 +319,7 @@ export default function Home() {
                   ? 'linear-gradient(135deg, #1e1b4b, #312e81)'
                   : 'linear-gradient(135deg, #fbbf24, #f59e0b)',
               }}
-              aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              aria-label={isDark ? t.darkMode : t.lightMode}
             >
               <span
                 className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center"
@@ -347,7 +342,7 @@ export default function Home() {
               onClick={() => setShowHistory(!showHistory)}
             >
               <History className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-xs">Historial</span>
+              <span className="hidden sm:inline text-xs">{t.history}</span>
               {history.length > 0 && (
                 <Badge variant="secondary" className="text-[10px] px-1 h-4">
                   {history.length}
@@ -366,15 +361,15 @@ export default function Home() {
               {/* Hero text */}
               <div className="text-center max-w-4xl mx-auto">
                 <h1 className="text-xl md:text-3xl font-bold tracking-tight mb-2">
-                  Desenmascara la
-                  <span className="text-neon"> desinformación</span>
+                  {t.heroTitle1}
+                  <span className="text-neon"> {t.heroTitle2}</span>
                 </h1>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Verifica noticias con un análisis que no solo detecta datos falsos, sino que visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas.
+                  {t.heroDescription}
                 </p>
                 <div className="flex items-center justify-center gap-2">
                   <Badge variant="outline" className="border-neon/50 text-neon text-[10px]">
-                    Enfoque Crítico-Pluralista
+                    {t.badgeApproach}
                   </Badge>
                 </div>
               </div>
@@ -386,23 +381,23 @@ export default function Home() {
               <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
                 <div className="bg-card border border-border/50 rounded-lg p-2.5 text-center space-y-0.5">
                   <Eye className="w-6 h-6 mx-auto text-neon" />
-                  <h3 className="font-semibold text-xs">6 Dimensiones</h3>
+                  <h3 className="font-semibold text-xs">{t.feature1Title}</h3>
                   <p className="text-[10px] text-muted-foreground">
-                    Credibilidad, coherencia, corroboración, sensacionalismo, veracidad y sesgo
+                    {t.feature1Desc}
                   </p>
                 </div>
                 <div className="bg-card border border-border/50 rounded-lg p-2.5 text-center space-y-0.5">
                   <Scale className="w-6 h-6 mx-auto text-analysis" />
-                  <h3 className="font-semibold text-xs">Fuentes Diversas</h3>
+                  <h3 className="font-semibold text-xs">{t.feature2Title}</h3>
                   <p className="text-[10px] text-muted-foreground">
-                    Colectivo Occidental, Sur Global, independientes, académicos y resistencia
+                    {t.feature2Desc}
                   </p>
                 </div>
                 <div className="bg-card border border-border/50 rounded-lg p-2.5 text-center space-y-0.5">
                   <FileText className="w-6 h-6 mx-auto text-trend" />
-                  <h3 className="font-semibold text-xs">Voces Silenciadas</h3>
+                  <h3 className="font-semibold text-xs">{t.feature3Title}</h3>
                   <p className="text-[10px] text-muted-foreground">
-                    Detectamos qué perspectivas se omiten y qué contexto falta
+                    {t.feature3Desc}
                   </p>
                 </div>
               </div>
@@ -414,7 +409,7 @@ export default function Home() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <History className="w-4 h-4 text-neon" />
-                      <h2 className="text-sm font-semibold">Historial de Verificaciones</h2>
+                      <h2 className="text-sm font-semibold">{t.history}</h2>
                     </div>
                     <HistoryList
                       items={history}
@@ -435,17 +430,17 @@ export default function Home() {
               <LiveLog logs={logs} currentStage={stage} />
               
               <div className="text-center space-y-3">
-                <h2 className="text-lg font-bold">Error en la verificación</h2>
+                <h2 className="text-lg font-bold">{t.errorTitle}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Revisa el registro arriba para ver dónde falló el análisis.
+                  {t.errorDesc}
                 </p>
                 <div className="flex items-center justify-center gap-3 flex-wrap">
                   <Button onClick={handleReset} variant="outline" className="gap-2 border-alert text-alert hover:bg-alert/10">
                     <ArrowLeft className="w-4 h-4" />
-                    Volver a intentar
+                    {t.retry}
                   </Button>
                   <Button onClick={runDiagnostics} variant="ghost" size="sm" className="gap-2 text-muted-foreground">
-                    🔧 Diagnóstico del servidor
+                    {t.diagnostics}
                   </Button>
                 </div>
 
@@ -453,14 +448,14 @@ export default function Home() {
                   <div className="mt-3 text-left">
                     <div className="bg-card border border-border rounded-xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
-                        <span className="text-xs font-mono text-muted-foreground">Diagnóstico del servidor</span>
+                        <span className="text-xs font-mono text-muted-foreground">{t.diagnostics}</span>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-6 text-xs text-muted-foreground"
                           onClick={() => navigator.clipboard.writeText(debugInfo)}
                         >
-                          Copiar
+                          Copy
                         </Button>
                       </div>
                       <pre className="p-3 text-xs font-mono text-foreground/80 overflow-auto max-h-40 whitespace-pre-wrap">
@@ -485,7 +480,7 @@ export default function Home() {
                   className="gap-1.5 text-muted-foreground h-7 text-xs"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  Nueva verificación
+                  {t.newVerification}
                 </Button>
                 <div className="flex items-center gap-2">
                   <Button
@@ -495,7 +490,7 @@ export default function Home() {
                     onClick={() => setShowFilters(!showFilters)}
                   >
                     <Filter className="w-3 h-3" />
-                    Filtros
+                    {t.filters}
                     {hasActiveFilters && (
                       <span className="w-1.5 h-1.5 rounded-full bg-alert" />
                     )}
@@ -508,7 +503,7 @@ export default function Home() {
                       onClick={clearFilters}
                     >
                       <X className="w-3 h-3" />
-                      Limpiar
+                      {t.clear}
                     </Button>
                   )}
                   <ShareResult result={result} />
@@ -520,14 +515,14 @@ export default function Home() {
                 <div className="bg-card border border-border rounded-lg p-2 shrink-0 space-y-1.5">
                   {/* Categories */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">Categoría:</span>
+                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">{t.category}</span>
                     <Button
                       variant={activeSourceFilter === 'all' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setActiveSourceFilter('all')}
                       className={`h-6 text-[10px] px-2 ${activeSourceFilter === 'all' ? 'bg-neon text-deep hover:bg-neon/90' : ''}`}
                     >
-                      Todas ({result.sourcesFound.length})
+                      {t.all} ({result.sourcesFound.length})
                     </Button>
                     {(['colectivo_occidental', 'sur_global', 'independiente', 'academico', 'resistencia'] as SourceCategory[]).map(
                       (cat) => {
@@ -549,14 +544,14 @@ export default function Home() {
                   </div>
                   {/* Geopolitical */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">Región:</span>
+                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">{t.region}</span>
                     <Button
                       variant={activeGeopoliticalFilter === 'all' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setActiveGeopoliticalFilter('all')}
                       className={`h-6 text-[10px] px-2 ${activeGeopoliticalFilter === 'all' ? 'bg-analysis text-white hover:bg-analysis/90' : ''}`}
                     >
-                      Todas
+                      {t.all}
                     </Button>
                     {(['alineado_otan', 'alineado_usa', 'alineado_ue', 'no_alineado', 'critico_orden_global', 'multipolar'] as GeopoliticalPerspective[]).map(
                       (persp) => {
@@ -578,14 +573,14 @@ export default function Home() {
                   </div>
                   {/* Orientation */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">Orientación:</span>
+                    <span className="text-[10px] text-muted-foreground font-medium w-16 shrink-0">{t.orientation}</span>
                     <Button
                       variant={activeOrientationFilter === 'all' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setActiveOrientationFilter('all')}
                       className={`h-6 text-[10px] px-2 ${activeOrientationFilter === 'all' ? 'bg-trend text-white hover:bg-trend/90' : ''}`}
                     >
-                      Todas
+                      {t.all}
                     </Button>
                     {(['estatal', 'corporativo', 'comunitario', 'independiente', 'academico'] as SourceOrientation[]).map(
                       (orient) => {
@@ -607,7 +602,7 @@ export default function Home() {
                   </div>
                   {hasActiveFilters && (
                     <div className="text-[10px] text-muted-foreground">
-                      Mostrando {filteredSources.length} de {result.sourcesFound.length} fuentes
+                      {t.showing} {filteredSources.length} {t.of} {result.sourcesFound.length} {t.sources}
                     </div>
                   )}
                 </div>
@@ -639,7 +634,7 @@ export default function Home() {
                 <div className="flex gap-1.5 shrink-0">
                   {/* Summary + Claims */}
                   <div className="bg-card border border-border rounded-lg p-2 flex-1 min-w-0">
-                    <h2 className="text-xs font-bold mb-1">Resultado del Análisis</h2>
+                    <h2 className="text-xs font-bold mb-1">{t.analysisResult}</h2>
                     <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2 mb-1">
                       {result.summary}
                     </p>
@@ -665,7 +660,7 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-2 mb-0.5 shrink-0">
                     <div className="flex items-center gap-1.5">
                       <BookOpen className="w-3.5 h-3.5 text-analysis" />
-                      <h2 className="text-xs font-semibold">Fuentes</h2>
+                      <h2 className="text-xs font-semibold">{t.sources}</h2>
                       <span className="text-[10px] text-muted-foreground">({filteredSources.length})</span>
                     </div>
                   </div>
@@ -677,7 +672,7 @@ export default function Home() {
                     </div>
                     {filteredSources.length === 0 && (
                       <p className="text-center text-xs text-muted-foreground py-4">
-                        No se encontraron fuentes con los filtros seleccionados
+                        {t.noSources}
                       </p>
                     )}
                   </div>
@@ -688,20 +683,8 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer — minimal */}
-      <footer className="border-t border-border bg-card/50 shrink-0">
-        <div className="w-full px-4 py-1 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-3 h-3 text-neon" />
-            <span className="text-[10px] text-muted-foreground font-medium">
-              VeriNews — Verificación Crítico-Pluralista
-            </span>
-          </div>
-          <p className="text-[9px] text-muted-foreground/60 max-w-md text-right">
-            Análisis desde 6 dimensiones con fuentes diversas. No reemplaza el juicio crítico — lo amplifica.
-          </p>
-        </div>
-      </footer>
+      {/* Expanded Footer */}
+      <ExpandedFooter />
     </div>
   );
 }
