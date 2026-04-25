@@ -44,7 +44,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
       <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden relative">
         {/* Watermark logo — only visible when input is empty */}
         {isInputEmpty && (
@@ -87,7 +87,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="text" className="mt-0">
               <Textarea
                 placeholder="Pega aquí el texto completo de la noticia que deseas verificar..."
-                className="min-h-[140px] resize-none text-sm"
+                className="min-h-[155px] resize-none text-sm"
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
               />
@@ -97,7 +97,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
               <Input
                 type="url"
                 placeholder="https://ejemplo.com/noticia"
-                className="h-[54px] text-sm"
+                className="h-[56px] text-sm"
                 value={urlContent}
                 onChange={(e) => setUrlContent(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -110,7 +110,7 @@ export function InputForm({ onSubmit, isLoading }: InputFormProps) {
             <TabsContent value="claim" className="mt-0">
               <Textarea
                 placeholder="Escribe la afirmación específica que deseas verificar (ej: 'Las sanciones económicas no afectan a la población civil')"
-                className="min-h-[100px] resize-none text-sm"
+                className="min-h-[110px] resize-none text-sm"
                 value={claimContent}
                 onChange={(e) => setClaimContent(e.target.value)}
                 onKeyDown={handleKeyDown}
