@@ -50,9 +50,9 @@ export async function chatCompletion(
   const apiKey = getApiKey();
   const model = options?.model || getModel();
 
-  // 120s timeout — mega-prompt needs time to generate large JSON response
+  // 45s timeout — must stay under EdgeOne serverless function limit (~60s)
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000);
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
 
   let response: Response;
   try {

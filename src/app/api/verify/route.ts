@@ -218,9 +218,11 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
 
           // Strategy: Try GLM-4.7-Flash (free) → fallback GLM-4.5-Flash (free)
           // Both models are 100% free on z.ai, no balance required
+          // IMPORTANT: Keep total time under 55s to avoid EdgeOne serverless timeout
           const FREE_MODELS = ['glm-4.7-flash', 'glm-4.5-flash'];
           let megaResponse: any = null;
           let usedModel: string = '';
+          let lastError: string = '';
 
           for (const model of FREE_MODELS) {
             try {
@@ -231,33 +233,33 @@ RESPONDE SOLO con un JSON con esta estructura exacta, sin texto adicional:
               megaResponse = await chatCompletion([
                 { role: 'system', content: SYSTEM_PROMPT },
                 { role: 'user', content: megaPrompt },
-              ], { max_tokens: 4096, model });
+              ], { max_tokens: 2048, model });
               usedModel = model;
               break; // Success — exit the retry loop
             } catch (error: any) {
-              const errorMsg = error?.message || '';
-              const isRecoverable = errorMsg.includes('429') || errorMsg.includes('500') || errorMsg.includes('524') || errorMsg.includes('rate') || errorMsg.includes('overload') || errorMsg.includes('1234') || errorMsg.includes('1302') || errorMsg.includes('1305') || errorMsg.includes('balance') || errorMsg.includes('network failure') || errorMsg.includes('timed out');
+              lastError = error?.message || '';
+              const isRecoverable = lastError.includes('429') || lastError.includes('500') || lastError.includes('524') || lastError.includes('rate') || lastError.includes('overload') || lastError.includes('1234') || lastError.includes('1302') || lastError.includes('1305') || lastError.includes('balance') || lastError.includes('network failure') || lastError.includes('timed out');
 
               if (isRecoverable && model !== FREE_MODELS[FREE_MODELS.length - 1]) {
-                // Try next free model
+                // Try next free model (short delay to avoid EdgeOne timeout)
                 send(sendLog(encoder, 'analyzing',
                   `${model} no disponible, probando modelo alternativo...`,
                   'Cambiando a modelo gratuito de respaldo',
                 ));
-                await delay(3000);
+                await delay(2000);
                 continue;
               } else if (isRecoverable) {
-                // Last model also failed — wait and retry once more
+                // Last model also failed — one quick retry with same model
                 send(sendLog(encoder, 'analyzing',
-                  'Servidor ocupado, esperando 15s antes de reintentar...',
-                  'Todos los modelos gratuitos están saturados — último intento',
+                  'Reintentando...',
+                  'Último intento con modelo gratuito',
                 ));
-                await delay(15000);
+                await delay(5000);
                 try {
                   megaResponse = await chatCompletion([
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: megaPrompt },
-                  ], { max_tokens: 4096, model: FREE_MODELS[0] });
+                  ], { max_tokens: 2048, model: FREE_MODELS[0] });
                   usedModel = FREE_MODELS[0];
                   break;
                 } catch {
