@@ -364,17 +364,15 @@ export default function Home() {
           {!result && stage === 'idle' && (
             <div className="space-y-3">
               {/* Hero text */}
-              <div className="text-center space-y-1 max-w-2xl mx-auto">
-                <h1 className="text-xl md:text-3xl font-bold tracking-tight">
+              <div className="text-center max-w-4xl mx-auto">
+                <h1 className="text-xl md:text-3xl font-bold tracking-tight mb-2">
                   Desenmascara la
                   <span className="text-neon"> desinformación</span>
                 </h1>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Verifica noticias con un análisis que no solo detecta datos falsos,<br />
-                  sino que visibiliza sesgos, omisiones y voces silenciadas<br />
-                  por las narrativas hegemónicas.
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Verifica noticias con un análisis que no solo detecta datos falsos, sino que visibiliza sesgos, omisiones y voces silenciadas por las narrativas hegemónicas.
                 </p>
-                <div className="flex items-center justify-center gap-2 mt-1">
+                <div className="flex items-center justify-center gap-2">
                   <Badge variant="outline" className="border-neon/50 text-neon text-[10px]">
                     Enfoque Crítico-Pluralista
                   </Badge>
