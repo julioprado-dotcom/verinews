@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useI18n } from '@/lib/i18n-context';
-import { Shield, X, Users, Globe, VolumeX, Mail, MessageCircle, Lightbulb, Coffee } from '@/lib/icons';
+import { Shield, X, Users, Globe, VolumeX, Mail, MessageCircle, Lightbulb, Coffee, AlertTriangle } from '@/lib/icons';
 
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   if (!open) return null;
@@ -31,6 +31,7 @@ export function ExpandedFooter() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   return (
     <>
@@ -64,6 +65,13 @@ export function ExpandedFooter() {
             >
               {t.footerContact}
             </button>
+            <button
+              type="button"
+              onClick={() => setTermsOpen(true)}
+              className="text-[10px] text-muted-foreground hover:underline"
+            >
+              {t.footerTerms}
+            </button>
             <a
               href="https://ko-fi.com/verinews"
               target="_blank"
@@ -92,6 +100,79 @@ export function ExpandedFooter() {
         <Coffee className="w-3.5 h-3.5" />
         <span className="hidden sm:inline">{t.buyCoffee}</span>
       </a>
+
+      {/* Terms Modal */}
+      <Modal open={termsOpen} onClose={() => setTermsOpen(false)} title={t.termsTitle}>
+        <div className="space-y-2.5">
+          <div className="flex items-start gap-2">
+            <Shield className="w-4 h-4 text-neon mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsAcceptance}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsAcceptanceDesc}</p>
+            </div>
+          </div>
+          <Separator />
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-alert mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsNoWarranty}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsNoWarrantyDesc}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Globe className="w-4 h-4 text-analysis mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsAILimit}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsAILimitDesc}</p>
+            </div>
+          </div>
+          <Separator />
+          <div className="flex items-start gap-2">
+            <Shield className="w-4 h-4 text-alert mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsNoLiability}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsNoLiabilityDesc}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <VolumeX className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsNoAdvice}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsNoAdviceDesc}</p>
+            </div>
+          </div>
+          <Separator />
+          <div className="flex items-start gap-2">
+            <Users className="w-4 h-4 text-trend mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsUserContent}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsUserContentDesc}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-trend mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsAccuracy}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsAccuracyDesc}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Globe className="w-4 h-4 text-neon mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsThirdParty}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsThirdPartyDesc}</p>
+            </div>
+          </div>
+          <Separator />
+          <div className="flex items-start gap-2">
+            <Lightbulb className="w-4 h-4 text-neon mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold">{t.termsChanges}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{t.termsChangesDesc}</p>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       {/* About Modal */}
       <Modal open={aboutOpen} onClose={() => setAboutOpen(false)} title={t.aboutTitle}>
